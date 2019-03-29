@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Test UI</title>
+        <link rel="icon" href="#" />
+        <link rel="stylesheet" type="text/css" href="css/style.css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" />
+        <link rel="stylesheet" type="text/css" href="css/jquery.tagit.css" />
+        <link rel="stylesheet" type="text/css" href="css/tagit.ui-zendesk.css" />
+        <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+        <link rel="stylesheet" type="text/css" href="css/bootstrap-switch.min.css" />
+        <script type="text/javascript" src="js/jquery-2.2.0.js"></script>
+        <script type="text/javascript" src="js/jquery.cookie.min.js"></script>
+        <script type="text/javascript" src="js/audio/audio_handlers.js"></script>
+        <script type="text/javascript" src="js/audio/resampler.js"></script>
+        <script type="text/javascript" src="js/utils/tagit/tag-it.min.js" charset="utf-8"></script>
+        <script type="text/javascript" src="js/utils/promises/q.js"></script>
+        <script type="text/javascript" src="js/utils/data_utils.js"></script>
+        <script type="text/javascript" src="js/utils/string_utils.js"></script>
+        <script type="text/javascript" src="js/ui.js"></script>
+        <script type="text/javascript" src="js/FakeWebSocket.js"></script>
+        <script
+            type="text/javascript"
+            src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+        ></script>
+        <script
+            type="text/javascript"
+            src="js/utils/bootstrap-switch/bootstrap-switch.min.js"
+        ></script>
+        <script type="text/javascript" src="js/cookies.js"></script>
+        <script type="text/javascript" src="js/helper.js"></script>
+        <script type="text/javascript" src="js/main.js"></script>
+        <script type="text/javascript" src="js/commands.js"></script>
+    </head>
+    <body onload="getAllCookies()">
+        <div>
+            <span>URL:</span>
+            <input type="text" class="form-control" id="wsUrl" />
+        </div>
+        <div>
+            <span>Message:</span>
+            <input
+                type="text"
+                class="form-control"
+                id="wsMsg"
+                value='{"type":"event","sessionId":"1111","command":{"name":"greet","id":"1"}}'
+            />
+        </div>
+        <div>
+            <button
+                type="button"
+                id="button-open-ws"
+                class="btn btn-primary btn-lg"
+                onclick="openWS()"
+            >
+                Open WebSocket
+            </button>
+            <button
+                type="button"
+                id="button-send-ws"
+                class="btn btn-primary btn-lg"
+                onclick="sendToWS()"
+            >
+                Send Message
+            </button>
+            <button
+                type="button"
+                id="button-check-ws"
+                class="btn btn-primary btn-lg"
+                onclick="checkWS()"
+            >
+                Check WebSocket
+            </button>
+            <button
+                type="button"
+                id="button-dequeue-ws"
+                class="btn btn-primary btn-lg"
+                onclick="dequeueWS()"
+            >
+                Dequeue WebSocket Data
+            </button>
+            <button
+                type="button"
+                id="button-close-ws"
+                class="btn btn-primary btn-lg"
+                onclick="closeWS()"
+            >
+                Close WebSocket
+            </button>
+        </div>
+        <div>
+            <span>WebSocket Status:</span><br />
+            <span id="wsStatus"></span>
+        </div>
+        <div>
+            <span>Dequeue Data:</span><br />
+            <span id="wsData"></span>
+        </div>
+    </body>
+</html>
