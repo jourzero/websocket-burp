@@ -1,4 +1,11 @@
 var wsStatus = "Unknown";
+/*
+var currentCommand = "";
+var currentCommands = [];
+var currentResults = [];
+var socket = {};
+*/
+var sessionless = true;
 
 $.ajaxSetup({cache: false});
 
@@ -19,7 +26,7 @@ class FakeWebSocket {
 
     close() {
         console.info("Sending websocket close request");
-        this.sendPostRequest("/websocket/close", "Close");
+        this.sendPostRequest("/websocket/close", {});
     }
 
     checkStatus() {
@@ -35,14 +42,29 @@ class FakeWebSocket {
         });
     }
 
-    dequeue() {
-        console.info("Sending websocket dequeue request");
-        $.getJSON("/websocket/dequeue", function(data) {
-            //if (data !== undefined) $("#wsData").html(JSON.stringify(data));
-            if (data !== undefined) $("#wsData").html(data);
+    getStats() {
+        console.info("Sending websocket stats request");
+        $.getJSON("/websocket/stats", function(data) {
+            if (data === undefined) data = "";
+            $("#wsStats").html(JSON.stringify(data));
         });
     }
 
+    dequeue() {
+        console.info("Sending websocket dequeue request");
+        $.getJSON("/websocket/dequeue", function(data) {
+            if (data === undefined) data = "";
+            $("#wsData").html(JSON.stringify(data));
+        });
+    }
+
+    receive() {
+        console.info("Sending websocket receive request");
+        $.getJSON("/websocket/receive", function(data) {
+            if (data === undefined) data = "";
+            $("#wsData").html(JSON.stringify(data));
+        });
+    }
     postRespHandler(data, textStatus, jqXHR) {
         try {
             // Assume that the data is for onmessage() if it's not a string or an object (audio)
@@ -74,8 +96,16 @@ class FakeWebSocket {
 
     sendPostRequest(url, msg) {
         console.debug("Sending POST request to", url, ":", msg);
-        $.post(url, msg, this.postRespHandler, "json");
+        //$.post(url, msg, this.postRespHandler, "json");
 
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: msg,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: this.postRespHandler
+        });
         /*
         var xhr = new XMLHttpRequest();
         xhr.open("POST", url, true);
@@ -118,7 +148,7 @@ class FakeWebSocket {
 } // class FakeWebSocket
 
 // Poll for new messages every 15 seconds
-setInterval("socket.poll()", 15000);
+//setInterval("socket.poll()", 15000);
 
 function openWS() {
     let wsUrl = $("#wsUrl").val();
@@ -128,7 +158,11 @@ function openWS() {
 
 function sendToWS() {
     let msg = $("#wsMsg").val();
+    let msgObj = JSON.parse(msg);
+    msgObj.wsSendTime = new Date();
+    msg = JSON.stringify(msgObj);
     console.debug("Sending message", msg);
+    $("#wsMsg").val(msg);
     socket.send(msg);
 }
 
@@ -137,20 +171,30 @@ function checkWS() {
     socket.checkStatus();
 }
 
+function statsWS() {
+    console.debug("Getting stats.");
+    socket.getStats();
+}
+
 function dequeueWS() {
     console.debug("Dequeuing all received WebSocket data.");
     socket.dequeue();
 }
 
+function receiveWS() {
+    console.debug("Receiving one WebSocket message.");
+    socket.receive();
+}
+
 function closeWS() {
-    closeSocket();
-    console.debug("WebSocket connection closed.");
+    console.debug("Closing WebSocket connection.");
+    socket.close();
 }
 
 function onopen() {
     console.debug("WebSocket connection opened.");
-    ui_socketOpened();
-    ui_socketHasOpened();
+    //ui_socketOpened();
+    //ui_socketHasOpened();
     setAllCookies();
 
     if (sessionless === false) {
@@ -216,6 +260,7 @@ function onmessage(event) {
     let audioPlayer16k = new AudioPlayer16k(audioContext);
     let audioPlayerSpeex = new AudioPlayerSpeex(audioContext);
     let audioPlayerSpeex16k = new AudioPlayerSpeex16k(audioContext);
+    let decCount = 0;
     console.debug("socket RECEIVED:");
     if (isOfType("ArrayBuffer", event.data)) {
         // The play audio command will return ArrayBuffer data to be played
@@ -309,7 +354,7 @@ function onmessage(event) {
                 currentCommands = [];
                 currentResults = [];
                 if (result.status.toUpperCase() === "SUCCESS") {
-                    ui_sessionHasStarted();
+                    //ui_sessionHasStarted();
                     sessionId = response.sessionId;
                     $(".applicationStepId").val(applicationStepId);
                 } else {
@@ -323,7 +368,7 @@ function onmessage(event) {
                 currentCommands = [];
                 currentResults = [];
                 if (result.status.toUpperCase() === "SUCCESS") {
-                    ui_sessionHasEnded();
+                    //ui_sessionHasEnded();
                     // In case socket is not closed by the Server, close it from Client side
                     if (socket !== undefined) {
                         socket.close();
@@ -359,7 +404,7 @@ function onmessage(event) {
                 currentCommands = [];
                 currentResults = [];
                 $("#playaudio_results").text(JSON.stringify(response, null, 4));
-                ui_ttsStopped();
+                //ui_ttsStopped();
             } else if (currentCommand === "speechRecognition") {
                 if (result.final) {
                     // final result
@@ -369,7 +414,7 @@ function onmessage(event) {
                     currentCommands = [];
                     currentResults = [];
                     $("#sr_results").text(JSON.stringify(response, null, 4));
-                    ui_stopSRRecording();
+                    //ui_stopSRRecording();
                     if (audioRecorder) {
                         stopRecording();
                     }
@@ -404,8 +449,7 @@ function onmessage(event) {
         } else if (response.event) {
             currentResults.push(response);
             $("#sr_results").text(JSON.stringify(response, null, 4));
-        } else {
-            alert(JSON.stringify(response, null, 4));
         }
+        //else { alert(JSON.stringify(response, null, 4)); }
     }
 }

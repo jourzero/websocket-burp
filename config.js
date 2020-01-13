@@ -1,11 +1,11 @@
 const os = require("os");
 const winston = require("winston");
 const appRoot = require("app-root-path");
-const appName = "webapi-proxy";
+const appName = "ws-proxy";
 
 const config = {
     appName: appName,
-    wssProxy: "https://192.168.5.102:8443",
+    wssProxy: "http://192.168.9.106:8081",
     logging: {
         file: {
             format: winston.format.json(), // This format shouldn't cause CRLF issues
