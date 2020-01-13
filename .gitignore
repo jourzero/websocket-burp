@@ -63,5 +63,5 @@ typings/
 # Added manually
 cert.pem
 key.pem
-burp-ca-cert.der
-burp-ca-key.der
+cert.der
+key.der
