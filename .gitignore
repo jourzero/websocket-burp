@@ -61,7 +61,4 @@ typings/
 .next
 
 # Added manually
-cert.pem
-key.pem
-cert.der
-key.der
+certs/
