@@ -20,11 +20,11 @@ const createError = require("http-errors"),
 logger.info(format("App %s is starting...", config.appName));
 
 // HTTP/HTTPS proxy to connect to
-let wssProxyAgent = undefined;
-if (typeof config.wssProxy !== "undefined") {
-    let wssProxyUrl = url.parse(config.wssProxy);
-    logger.info("Using websocket proxy server " + JSON.stringify(wssProxyUrl));
-    wssProxyAgent = new HttpsProxyAgent(wssProxyUrl);
+let backProxyAgent = undefined;
+if (typeof config.backProxy !== "undefined") {
+    let backProxyUrl = url.parse(config.backProxy);
+    logger.info("Using websocket proxy server " + JSON.stringify(backProxyUrl));
+    backProxyAgent = new HttpsProxyAgent(backProxyUrl);
 }
 
 // Create logs directory
@@ -77,7 +77,8 @@ app.post("/websocket/open", (req, res) => {
     let body = req.body;
     if (typeof body === "string") body = JSON.parse(req.body);
     logger.info("Websocket open for %s", body.url);
-    if (typeof wssProxyAgent !== "undefined") ws = new WebSocket(body.url, {agent: wssProxyAgent});
+    if (typeof backProxyAgent !== "undefined")
+        ws = new WebSocket(body.url, {agent: backProxyAgent});
     else ws = new WebSocket(body.url);
     //ws = new WebSocket(body.url);
 
@@ -238,42 +239,4 @@ function logMessage(msg) {
         });
     }
 }
-
-/*
-logger.info("WebSocket server started");
-let Msg = "";
-let WebSocketServer = require("ws").Server;
-let wss = new WebSocketServer({port: 3001});
-wss.on("connection", function(ws) {
-    ws.on("message", function(message) {
-        console.log("Received from client: %s", message);
-        ws.send("Server received from client: " + message);
-    });
-});
-*/
-
-//const wsproxy = require("./wsproxy");
-
-//const https = require("https");
-//const WebSocket = require("ws");
-
-/*
-const server = https.createServer({
-    cert: fs.readFileSync("cert.pem"),
-    key: fs.readFileSync("key.pem")
-});
-const wss = new WebSocket.Server({server});
-
-wss.on("connection", function connection(ws) {
-    ws.on("message", function incoming(message) {
-        console.log("received: %s", message);
-    });
-
-    ws.send("something");
-});
-
-console.info("Listening on port 3000...");
-server.listen(3000);
-*/
-
 module.exports = app;

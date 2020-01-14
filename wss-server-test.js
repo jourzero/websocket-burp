@@ -1,20 +1,25 @@
 const fs = require("fs");
-const https = require("https");
+//const https = require("https");
+const https = require("http");
 const WebSocket = require("ws");
 
-const server = https.createServer({
-    cert: fs.readFileSync("cert.pem"),
-    key: fs.readFileSync("key.pem")
-});
-const wss = new WebSocket.Server({server});
+//let options = {cert: fs.readFileSync("certs/cert.pem"), key: fs.readFileSync("certs/key.pem")};
+let options = {};
 
+const server = https.createServer(options, (req, res) => {
+    console.debug("Received a request");
+    res.writeHead(200);
+    res.end("WebSocket Test App\n");
+});
+
+const wss = new WebSocket.Server({server});
 wss.on("connection", function connection(ws) {
     ws.on("message", function incoming(message) {
-        console.log("received: %s", message);
+        console.log("Received: %s", message);
+        console.log("Echoing: %s", message.toUpperCase());
+        ws.send(message.toUpperCase());
     });
-
-    ws.send("something");
 });
 
-console.info("Listening on port 3000...");
-server.listen(3000);
+console.info("Test app listening on port 8084...");
+server.listen(8084);

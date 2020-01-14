@@ -9,7 +9,7 @@ RUN apt-get update
 RUN apt-get -y install vim netcat lsof
 
 # Copy local source to /app
-COPY . .
+#COPY . .
 
 # Get node modules
 #RUN npm install --production
@@ -18,11 +18,11 @@ COPY . .
 RUN npm install
 RUN npm install -g nodemon
 
-EXPOSE 3000
-EXPOSE 3001
+EXPOSE 8082 8083 8084
 ENV NODE_TLS_REJECT_UNAUTHORIZED=0
-ENV PORT=3000 
+ENV PORT=8082 
+ENV PORT2=8083 
 #CMD [ "/bin/bash" ]
-#CMD NODE_TLS_REJECT_UNAUTHORIZED=0 DEBUG="express:*,http:*,webapi-proxy:*,https-proxy-agent:*,ws:*" PORT=3000 npm start
+#CMD NODE_TLS_REJECT_UNAUTHORIZED=0 DEBUG="express:*,http:*,webapi-proxy:*,https-proxy-agent:*,ws:*" PORT=8082 npm start
 CMD [ "/bin/bash" ]
-#CMD NODE_TLS_REJECT_UNAUTHORIZED=0 PORT=3000 npm start
+#CMD NODE_TLS_REJECT_UNAUTHORIZED=0 PORT=8082 npm start
