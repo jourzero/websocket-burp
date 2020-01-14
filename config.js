@@ -6,7 +6,7 @@ const appName = "ws-proxy";
 const config = {
     appName: appName,
     // Uncomment wssProxy if you want to insert Burp in front of the app to capture websocket data
-    //wssProxy: "http://192.168.9.106:8081",
+    wssProxy: "http://192.168.9.125:8081",
     logging: {
         file: {
             format: winston.format.json(), // This format shouldn't cause CRLF issues

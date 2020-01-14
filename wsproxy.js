@@ -16,5 +16,13 @@ let proxyServer = http.createServer(function(req, res) {
 proxyServer.on("upgrade", function(req, socket, head) {
     proxy.ws(req, socket, head);
 });
+proxyServer.on("listening", onListening);
 
 proxyServer.listen(3001);
+
+function onListening() {
+    const addr = proxyServer.address();
+    const bind =
+        typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
+    console.debug("HTTP proxy listening on " + bind);
+}
