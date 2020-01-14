@@ -20,9 +20,12 @@ const createError = require("http-errors"),
 logger.info(format("App %s is starting...", config.appName));
 
 // HTTP/HTTPS proxy to connect to
-let wssProxyUrl = url.parse(config.wssProxy);
-logger.info("Using websocket proxy server " + JSON.stringify(wssProxyUrl));
-let wssProxyAgent = new HttpsProxyAgent(wssProxyUrl);
+let wssProxyAgent = undefined;
+if (typeof config.wssProxy !== "undefined") {
+    let wssProxyUrl = url.parse(config.wssProxy);
+    logger.info("Using websocket proxy server " + JSON.stringify(wssProxyUrl));
+    wssProxyAgent = new HttpsProxyAgent(wssProxyUrl);
+}
 
 // Create logs directory
 /*
@@ -74,7 +77,8 @@ app.post("/websocket/open", (req, res) => {
     let body = req.body;
     if (typeof body === "string") body = JSON.parse(req.body);
     logger.info("Websocket open for %s", body.url);
-    ws = new WebSocket(body.url, {agent: wssProxyAgent});
+    if (typeof wssProxyAgent !== "undefined") ws = new WebSocket(body.url, {agent: wssProxyAgent});
+    else ws = new WebSocket(body.url);
     //ws = new WebSocket(body.url);
 
     ws.on("open", function(message) {

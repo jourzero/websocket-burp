@@ -3,9 +3,7 @@
     "version": "0.0.0",
     "private": true,
     "scripts": {
-        "dev": "nodemon ./bin/www",
-        "start": "node ./bin/www",
-        "test": "nodemon ./server.js"
+        "start": "nodemon --ignore logs/ ./bin/www"
     },
     "dependencies": {
         "app-root-path": "^2.1.0",
