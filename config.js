@@ -10,6 +10,7 @@ const config = {
     //backProxy: "http://192.168.9.106:8081",
     appURL: "http://localhost:8084",
     //appURL: "http://echo.websocket.org",
+    sampleAppPort: 8084,
     logging: {
         file: {
             format: winston.format.json(), // This format shouldn't cause CRLF issues

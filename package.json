@@ -3,7 +3,7 @@
     "version": "0.0.0",
     "private": true,
     "scripts": {
-        "start": "nodemon --ignore logs/ ./bin/www"
+        "start": "nodemon --ignore logs/ ws-proxy.js"
     },
     "dependencies": {
         "app-root-path": "^2.1.0",
@@ -18,9 +18,11 @@
         "https-proxy-agent": "*",
         "jquery": "^3.4.1",
         "morgan": "~1.9.0",
+        "nodemon": "^2.0.2",
+        "popper.js": "^1.16.0",
         "utf-8-validate": "^5.0.2",
         "winston": "^3.1.0",
-        "ws": "*"
+        "ws": "^7.2.1"
     },
     "devDependencies": {
         "prettier": "^1.19.1"

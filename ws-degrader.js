@@ -7,7 +7,7 @@ const http = require("http"),
 const port = process.env.PORT || "8082";
 
 // Setup our server to proxy standard HTTP requests
-let proxy = new httpProxy.createProxyServer({target: config.appURL});
+let proxy = new httpProxy.createProxyServer({ target: config.appURL });
 let proxyServer = http.createServer(function(req, res) {
     proxy.web(req, res);
 });
@@ -35,5 +35,5 @@ proxy.on("proxyRes", function(proxyRes, req, res) {
 proxyServer.listen(port);
 
 function onListening() {
-    console.debug("HTTP proxy listening on " + port);
+    console.debug("WebSocket Degrader Proxy Server listening on " + port);
 }

@@ -1,22 +1,20 @@
 FROM node:11
 #FROM node:11.6-alpine
 
-# Create app directory
-WORKDIR /app
-
-
 RUN apt-get update
 RUN apt-get -y install vim netcat lsof
+
+# Set user
+USER node
+
+# Create app directory
+WORKDIR /app
 
 # Copy local source to /app
 #COPY . .
 
 # Get node modules
-#RUN npm install --production
-
-# Get node modules
-RUN npm install
-RUN npm install -g nodemon
+#RUN npm install
 
 EXPOSE 8082 8083 8084
 ENV NODE_TLS_REJECT_UNAUTHORIZED=0
