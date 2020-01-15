@@ -1,58 +1,37 @@
-# WebAPI Proxy
+# README for WS-PROXY
 
-Proxy that profiles a RESTful web API front-end to a Websocket web service.
+The ws-proxy.js app starts-up a front-end websocket degrader (ws-degrader.js) so that we can downgrade websocket traffic to HTTP and then later reupgrade it by using a REST API(in ws-upgrader.js). The upgrade app is based on ExpressJS and includes a test web app at /tester.html.
+
+The whole reason to downgrade to HTTP is to be able to insert an HTTP fuzzer
+like Burp or OWASP ZAP in the loop for fuzzing purposes.
+
+Lastly, a sample websocket app (ws-sample-app) is included to test the whole chain.
 
 ## Running with Docker
 
-``` bash
-$ ./docker-all.sh 
+Run this app using these commands:
 
+```bash
+$ docker build -t ws-proxy .
+<OUTPUT SUPPRESSED>
 
--- Running docker-stop.sh
--proxy
+$ docker run -it --rm -p 127.0.0.1:8082-8084:8082-8084 --mount type=bind,source="$PWD",target=/app --name ws-proxy ws-proxy
 
+node@b86942635e74:/app$ whoami
+node
+node@b86942635e74:/app$ npm start
 
--- Running docker-build.sh
-Sending build context to Docker daemon  6.491MB
-Step 1/8 : FROM node:11
- ---> 2698faaff1ee
-Step 2/8 : WORKDIR /app
- ---> Using cache
- ---> ee794ed94a54
-Step 3/8 : RUN apt-get update
- ---> Using cache
- ---> 6c3df2478d39
-Step 4/8 : RUN apt-get -y install vim netcat lsof
- ---> Using cache
- ---> b75ddde06f25
-Step 5/8 : COPY . .
- ---> b01200b35d2f
-Step 6/8 : RUN npm install --production
- ---> Running in 7527937db6e1
-npm notice created a lockfile as package-lock.json. You should commit this file.
-added 105 packages from 111 contributors and audited 205 packages in 4.334s
-found 0 vulnerabilities
+> ws-proxy@0.0.0 start /app
+> nodemon --ignore logs/ ws-proxy.js
 
-Removing intermediate container 7527937db6e1
- ---> d201a7404d59
-Step 7/8 : EXPOSE 4242
- ---> Running in ea8643a371fb
-Removing intermediate container ea8643a371fb
- ---> 819841cd13b8
-Step 8/8 : CMD PORT=4242 npm start
- ---> Running in 113d9dd77ae3
-Removing intermediate container 113d9dd77ae3
- ---> ed6ca8b91b36
-Successfully built ed6ca8b91b36
-Successfully tagged -proxy:latest
-
-
--- Running docker-run-detached.sh
-fdd6c9cf30a6c5ab5ac4d70704c138efcb43b17c42bb054bf4ea8a4d7baf3ccb
-
-
--- Running docker-logs.sh
-
-> -proxy@0.0.0 start /app
-> node ./bin/www
+[nodemon] 2.0.2
+[nodemon] to restart at any time, enter `rs`
+[nodemon] watching dir(s): *.*
+[nodemon] watching extensions: js,mjs,json
+[nodemon] starting `node ws-proxy.js`
+info: App ws-proxy is starting...
+info: Starting sample WebSocket app at http://127.0.0.1:8084
+WebSocket Degrader Proxy Server listening on 8082
+debug: WebSocket Upgrader App/API Server is listening on port 8083
+info: NOTE: Try the tester app at http://127.0.0.1:8083/tester.html
 ```

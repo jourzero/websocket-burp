@@ -6,10 +6,12 @@ const appName = "ws-proxy";
 const config = {
     appName: appName,
     // Uncomment wssProxy if you want to insert Burp in front of the app to capture websocket data
-    //backProxy: "http://192.168.9.125:8081",
+    backProxy: "http://192.168.9.125:8081",
     //backProxy: "http://192.168.9.106:8081",
     appURL: "http://localhost:8084",
     //appURL: "http://echo.websocket.org",
+    degraderPort: 8082,
+    upgraderPort: 8083,
     sampleAppPort: 8084,
     logging: {
         file: {

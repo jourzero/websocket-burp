@@ -6,14 +6,15 @@ var currentResults = [];
 var socket = {};
 */
 var sessionless = true;
-
-$.ajaxSetup({cache: false});
+var wsQueueing = $("#wsQueueing").prop("checked");
+$.ajaxSetup({ cache: false });
 
 class FakeWebSocket {
     constructor(url) {
         console.info("Sending websocket open request to", url);
         let server = {};
         server.url = new URL(url);
+        server.queueing = wsQueueing;
         this.sendPostRequest("/websocket/open", JSON.stringify(server));
     }
 
@@ -77,7 +78,7 @@ class FakeWebSocket {
                 if (data !== undefined && data.type !== undefined) {
                     event.data = JSON.stringify(data);
                 } else event.data = data;
-                onmessage(event);
+                //onmessage(event);
             }
             // If it's a redirect, we probably got here right after sending a message. In any case, follow the redirect.
             if (data.redirect) {
@@ -87,6 +88,16 @@ class FakeWebSocket {
                 // If the websocket was just opened, call onopen() after a 5 sec. wait.
                 if (data.op !== undefined && data.op === "open") {
                     setTimeout("onopen()", 2000);
+                } else if (data.op !== undefined && data.op !== "open") {
+                    console.debug("Data:", JSON.stringify(data));
+                } else if (!wsQueueing) {
+                    console.debug("Received data:", JSON.stringify(data));
+                    $("#wsData").html(JSON.stringify(data));
+                } else {
+                    console.warn(
+                        "Got here with no op data:",
+                        JSON.stringify(data)
+                    );
                 }
             }
         } catch (err) {
@@ -96,8 +107,6 @@ class FakeWebSocket {
 
     sendPostRequest(url, msg) {
         console.debug("Sending POST request to", url, ":", msg);
-        //$.post(url, msg, this.postRespHandler, "json");
-
         $.ajax({
             url: url,
             type: "POST",
@@ -106,22 +115,6 @@ class FakeWebSocket {
             dataType: "json",
             success: this.postRespHandler
         });
-        /*
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", url, true);
-
-        //Send the proper header information along with the request
-        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-
-        xhr.onreadystatechange = function() {
-            // Call a function when the state changes.
-            if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-                // Request finished. Do processing here.
-            }
-        };
-        //xhr.send(JSON.stringify(msg));
-        xhr.send(msg);
-        */
     }
 
     sendGetRequest(url) {
@@ -133,7 +126,7 @@ class FakeWebSocket {
                     else {
                         let event = {};
                         event.data = JSON.stringify(data);
-                        onmessage(event);
+                        //onmessage(event);
                     }
                 }
             } catch (err) {
@@ -152,6 +145,7 @@ class FakeWebSocket {
 
 function openWS() {
     let wsUrl = $("#wsUrl").val();
+    wsQueueing = $("#wsQueueing").prop("checked");
     console.debug("Opening WebSocket at", wsUrl);
     socket = new FakeWebSocket(wsUrl);
 }
@@ -220,7 +214,9 @@ function onopen() {
             }
         };
         currentCommands.push(startSessionCommand);
-        console.debug("Sending command:\n" + JSON.stringify(startSessionCommand));
+        console.debug(
+            "Sending command:\n" + JSON.stringify(startSessionCommand)
+        );
         socket.send(JSON.stringify(startSessionCommand));
 
         currentCommand = "startSession";
@@ -229,7 +225,11 @@ function onopen() {
 }
 
 function onclose() {
-    if (confirm("Would you like to open logs of the expired session in another window?")) {
+    if (
+        confirm(
+            "Would you like to open logs of the expired session in another window?"
+        )
+    ) {
         let log = {
             sessionId: sessionId,
             commands: commands,
@@ -245,7 +245,11 @@ function onclose() {
 }
 
 function connFailure() {
-    if (confirm("Connection failed. Would you like to reset connection and session parameters?")) {
+    if (
+        confirm(
+            "Connection failed. Would you like to reset connection and session parameters?"
+        )
+    ) {
         reset();
         window.location.reload(true);
     } else {
@@ -253,6 +257,7 @@ function connFailure() {
     }
 }
 
+/*
 function onmessage(event) {
     console.debug("In onmessage() with data:", JSON.stringify(event));
     let audioContext = initAudioContext();
@@ -430,11 +435,15 @@ function onmessage(event) {
                     results.push(currentResults);
                     currentCommands = [];
                     currentResults = [];
-                    $("#config_results").text(JSON.stringify(response, null, 4));
+                    $("#config_results").text(
+                        JSON.stringify(response, null, 4)
+                    );
                 } else {
                     // Runtime response
                     currentResults.push(response);
-                    $("#config_results").text(JSON.stringify(response, null, 4));
+                    $("#config_results").text(
+                        JSON.stringify(response, null, 4)
+                    );
                 }
             } else if (currentCommand === "interpretationCommand") {
                 if (result.final) {
@@ -453,3 +462,4 @@ function onmessage(event) {
         //else { alert(JSON.stringify(response, null, 4)); }
     }
 }
+*/

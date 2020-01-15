@@ -23,7 +23,7 @@ const config = require("./config.js");
 const logger = require("./lib/appLogger.js");
 
 // Get port from environment and store in Express.
-const port = normalizePort(process.env.PORT2 || "8083");
+const port = config.upgraderPort;
 app.set("port", port);
 
 /**

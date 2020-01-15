@@ -5,80 +5,33 @@
         <link rel="icon" href="#" />
         <link rel="stylesheet" type="text/css" href="css/style.css" />
         <script type="text/javascript" src="/jquery/jquery.min.js"></script>
+        <script type="text/javascript" src="/js/jquery.min.js"></script>
         <link rel="stylesheet" type="text/css" href="/bootstrap/css/bootstrap.min.css" />
+        <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" />
         <script type="text/javascript" src="js/FakeWebSocket.js"></script>
         <script type="text/javascript" src="js/cookies.js"></script>
     </head>
     <body onload="getAllCookies()">
+        <h2>Tester for WS Client REST API (ws-upgrader)</h2>
         <div>
-            <span>URL:</span>
-            <input
-                type="text"
-                class="form-control"
-                id="wsUrl"
-                value="wss://echo.websocket.org:443"
-            />
+            <span>Target App WebSocket URL:</span>
+            <input type="text" class="form-control" id="wsUrl" title="WebSocket URL (ws://... or wss:/...)" value="ws://127.0.0.1:8084" value2="wss://echo.websocket.org:443" />
+            <input type="checkbox" id="wsQueueing" name="wsQueueing" title="Enable queueing" value="1" /> Queueing
         </div>
         <div>
             <span>Message:</span>
-            <input
-                type="text"
-                class="form-control"
-                id="wsMsg"
-                value='{"type":"event","message":"Just a test!"}'
-            />
+            <input type="text" class="form-control" id="wsMsg" title="Message to send (JSON or other)" value='{"type":"event","message":"Just a test!"}' />
         </div>
+        <br />
         <div>
-            <span>WebSocket Operations:</span>
-            <button
-                type="button"
-                id="button-open-ws"
-                class="btn btn-primary btn-lg"
-                onclick="openWS()"
-            >
-                Open
-            </button>
-            <button
-                type="button"
-                id="button-send-ws"
-                class="btn btn-primary btn-lg"
-                onclick="sendToWS()"
-            >
-                Send Message
-            </button>
-            <button
-                type="button"
-                id="button-check-ws"
-                class="btn btn-primary btn-lg"
-                onclick="checkWS()"
-            >
-                Check
-            </button>
-            <button
-                type="button"
-                id="button-check-ws"
-                class="btn btn-primary btn-lg"
-                onclick="statsWS()"
-            >
-                Stats
-            </button>
-            <button
-                type="button"
-                id="button-dequeue-ws"
-                class="btn btn-primary btn-lg"
-                onclick="receiveWS()"
-            >
-                Receive
-            </button>
+            <h4>WebSocket Operations</h4>
+            <button type="button" id="button-open-ws" class="btn btn-primary btn-lg" onclick="openWS()" > Open </button> 
+            <button type="button" id="button-send-ws" class="btn btn-primary btn-lg" onclick="sendToWS()" > Send Message </button>
+            <button type="button" id="button-check-ws" class="btn btn-primary btn-lg" onclick="checkWS()" > Check </button> 
+            <button type="button" id="button-check-ws" class="btn btn-primary btn-lg" onclick="statsWS()" > Stats </button> 
+            <button type="button" id="button-dequeue-ws" class="btn btn-primary btn-lg" onclick="receiveWS()" > Receive </button> 
             <!-- <button type="button" id="button-dequeue-ws" class="btn btn-primary btn-lg" onclick="dequeueWS()" > Dequeue </button> -->
-            <button
-                type="button"
-                id="button-close-ws"
-                class="btn btn-primary btn-lg"
-                onclick="closeWS()"
-            >
-                Close
-            </button>
+            <button type="button" id="button-close-ws" class="btn btn-primary btn-lg" onclick="closeWS()" > Close </button> 
         </div>
 
         <div>

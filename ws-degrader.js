@@ -4,7 +4,7 @@ const http = require("http"),
     logger = require("./lib/appLogger.js");
 
 // Get port from environment and store in Express.
-const port = process.env.PORT || "8082";
+const port = config.degraderPort;
 
 // Setup our server to proxy standard HTTP requests
 let proxy = new httpProxy.createProxyServer({ target: config.appURL });
@@ -12,9 +12,11 @@ let proxyServer = http.createServer(function(req, res) {
     proxy.web(req, res);
 });
 
-// Listen to the `upgrade` event and proxy the WebSocket requests as well.
+// Listen to the `upgrade` event
 proxyServer.on("upgrade", function(req, socket, head) {
     logger.debug("Upgrade requested");
+
+    // proxy the WebSocket requests as well.
     proxy.ws(req, socket, head);
 });
 proxyServer.on("listening", onListening);

@@ -19,7 +19,7 @@ WORKDIR /app
 EXPOSE 8082 8083 8084
 ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 ENV PORT=8082 
-ENV PORT2=8083 
+ENV PORT2=8084 
 #CMD [ "/bin/bash" ]
 #CMD NODE_TLS_REJECT_UNAUTHORIZED=0 DEBUG="express:*,http:*,webapi-proxy:*,https-proxy-agent:*,ws:*" PORT=8082 npm start
 CMD [ "/bin/bash" ]

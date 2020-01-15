@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebSocket Tester</title>
+        <link rel="icon" href="#" />
+        <link rel="stylesheet" type="text/css" href="css/style.css" />
+        <script type="text/javascript" src="/js/jquery.min.js"></script>
+    </head>
+    <body>
+        <h2>WebSocket Tester Client</h2>
+
+            </table>
+        <div>
+            <datalist>
+              <option value="ws://container.local:8084">
+              <option value="ws://127.0.0.1:8084">
+              <option value="wss://echo.websocket.org:443">
+            </datalist> 
+
+            <table>
+                <tr> <th>WebSocket URL</th> <td class="dataCol"> <input list="urlList" class="form-control" id="wsUrl" title="WebSocket URL" /> </td> </tr> 
+                <tr> <th>Message</th> <td class="dataCol"><input type="text" class="form-control" id="wsMsg" title="Message to send (JSON or other)" value='{"type":"event","message":"Just a test!"}' /></td> </tr>
+                <tr> <th> Insert Timestamp </th> <td class="dataCol"> <input type="checkbox" id="addTime" title="Add timestamp to JSON message" checked /> </td> </tr> 
+            </table>
+        </div>
+
+        <br />
+        <div>
+            <h4>WebSocket Operations</h4>
+            <button type="button" id="button-open-ws" class="btn btn-primary btn-lg" onclick="openWS()" > Open </button> 
+            <button type="button" id="button-send-ws" class="btn btn-primary btn-lg" onclick="sendToWS()" > Send Message </button>
+            <button type="button" id="button-close-ws" class="btn btn-primary btn-lg" onclick="closeWS()" > Close </button> 
+        </div>
+        <div>
+            <h4>WebSocket Status</h4>
+            <table>
+                <tr><th>Status</th> <td id="wsStatus"></td> </tr>
+                <tr><th>Data</th> <td id="wsData"></td> </tr>
+            </table>
+        </div>
+
+        <script type="text/javascript">
+            var socket = undefined;
+
+            function openWS(){
+                url=$('#wsUrl').val();
+                socket=new WebSocket(url);
+                $('#wsStatus').html("Closed");
+
+                // Connection opened
+                socket.addEventListener('open', function (event) {
+                    console.info("Socket opened successfully.");
+                    $('#wsStatus').html("Opened");
+                    $('#wsData').html("");
+                });
+
+                // Connection closed
+                socket.addEventListener('close', function (event) {
+                    console.warn("Socket closed.");
+                    $('#wsStatus').html("Closed");
+                });
+
+                // Connection error
+                socket.addEventListener('error', function (event) {
+                    console.info("Socket error.");
+                    $('#wsStatus').html("Error");
+                });
+
+                // Listen for messages
+                socket.addEventListener('message', function (event) {
+                    console.log('Received: ', event.data);
+                    $('#wsData').html(event.data);
+                });
+            }
+
+            function sendToWS(){
+                let msg = $("#wsMsg").val();
+                var addTime = $("#addTime").prop("checked");
+                if (addTime){
+                    let msgObj = JSON.parse(msg);
+                    msgObj.wsSendTime = new Date();
+                    msg = JSON.stringify(msgObj);
+                    $("#wsMsg").val(msg);
+                }
+                console.log('Sending: ', msg);
+                socket.send(msg);
+            }
+
+            function closeWS(){
+                socket.close();
+                socket=undefined;
+                $('#wsStatus').html("Closed");
+                $('#wsData').html("");
+            }
+        </script>
+    <body>
+</html>

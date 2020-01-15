@@ -1,84 +1,111 @@
 body {
-  padding-top: 50px;
+    padding-top: 50px;
 }
 .starter-template {
-  padding: 40px 15px;
-  text-align: center;
+    padding: 40px 15px;
+    text-align: center;
 }
 
-.btn-primary, .btn-primary:hover, .btn-primary:active, .btn-primary:visited {
-  background-color: #7030a0 !important;
-  border-color: #000000 !important;
-  font-family: 'Open Sans', sans-serif;
+.btn-primary,
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary:visited {
+    background-color: #7030a0 !important;
+    border-color: #000000 !important;
+    font-family: "Open Sans", sans-serif;
 }
 
 .btn-danger {
-
-    font-family: 'Open Sans', sans-serif;
-
+    font-family: "Open Sans", sans-serif;
 }
 
 .display-4 {
-      font-family: 'Roboto', sans-serif;
-      font-size: 72px;
-      font-weight: bold;
-
+    font-family: "Roboto", sans-serif;
+    font-size: 72px;
+    font-weight: bold;
 }
 
 .secondaryTab {
     color: #7030a0 !important;
-      font-family: 'Open Sans', sans-serif;
-
+    font-family: "Open Sans", sans-serif;
 }
 
 .panel {
-  border-color:  #7030a0 !important;
-  font-family: 'Open Sans', sans-serif;
-
+    border-color: #7030a0 !important;
+    font-family: "Open Sans", sans-serif;
 }
 
 .bar-link {
     color: #7030a0 !important;
-  font-family: 'Open Sans', sans-serif;
-
+    font-family: "Open Sans", sans-serif;
 }
 
-.dropdown-toggle{
-      color: #7030a0 !important;
-  font-family: 'Open Sans', sans-serif;
-
+.dropdown-toggle {
+    color: #7030a0 !important;
+    font-family: "Open Sans", sans-serif;
 }
 
 .panel-heading {
     background-color: #7030a0 !important;
-  font-family: 'Open Sans', sans-serif;
-
+    font-family: "Open Sans", sans-serif;
 }
 
 .panel-heading .accordion-toggle:after {
-  font-family: 'Glyphicons Halflings';  /* essential for enabling glyphicon */
-  content: "\e114";    /* adjust as needed, taken from bootstrap.css */
-  float: right;        /* adjust as needed */
-  color: white;         /* adjust as needed */
-  background-color: #7030a0 !important;
+    font-family: "Glyphicons Halflings"; /* essential for enabling glyphicon */
+    content: "\e114"; /* adjust as needed, taken from bootstrap.css */
+    float: right; /* adjust as needed */
+    color: white; /* adjust as needed */
+    background-color: #7030a0 !important;
 }
 
 .panel-heading .accordion-toggle.collapsed:after {
-  /* symbol for "collapsed" panels */
-  content: "\e080";    /* adjust as needed, taken from bootstrap.css */
+    /* symbol for "collapsed" panels */
+    content: "\e080"; /* adjust as needed, taken from bootstrap.css */
     background-color: #7030a0 !important;
 }
 .glyphicon-refresh-animate {
-    -animation: spin .7s infinite linear;
-    -webkit-animation: spin2 .7s infinite linear;
+    -animation: spin 0.7s infinite linear;
+    -webkit-animation: spin2 0.7s infinite linear;
 }
 
 @-webkit-keyframes spin2 {
-    from { -webkit-transform: rotate(0deg);}
-    to { -webkit-transform: rotate(360deg);}
+    from {
+        -webkit-transform: rotate(0deg);
+    }
+    to {
+        -webkit-transform: rotate(360deg);
+    }
 }
 
 @keyframes spin {
-    from { transform: scale(1) rotate(0deg);}
-    to { transform: scale(1) rotate(360deg);}
+    from {
+        transform: scale(1) rotate(0deg);
+    }
+    to {
+        transform: scale(1) rotate(360deg);
+    }
+}
+
+.btn {
+    height: 50px;
+    font-size: 16px;
+    color: white;
+}
+
+.form-control {
+    width: 80%;
+}
+
+.statusTab,
+td {
+    text-align: left;
+    border-color: black;
+}
+
+th {
+    text-align: right;
+}
+
+.dataCol {
+    width: 1000px;
 }

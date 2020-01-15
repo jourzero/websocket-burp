@@ -2,7 +2,7 @@
 const createError = require("http-errors"),
     express = require("express"),
     fs = require("fs"),
-    hbs = require("hbs"),
+    //hbs = require("hbs"),
     path = require("path"),
     cookieParser = require("cookie-parser"),
     reqLogger = require("./lib/reqLogger.js"),
@@ -44,20 +44,38 @@ app.use(reqLogger);
 
 // view engine setup
 //app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "hbs");
-hbs.registerPartials(path.join(__dirname, "views/partials"));
+//app.set("view engine", "hbs");
+//hbs.registerPartials(path.join(__dirname, "views/partials"));
 //
 //app.use(logger("dev"));
 app.use(cookieParser());
 // Don't use body parser to get full control of body parsing (by commenting-out the following line)
-app.use(express.json({type: "application/json", strict: false, limit: "5mb"}));
+app.use(
+    express.json({ type: "application/json", strict: false, limit: "5mb" })
+);
 app.use(express.static(path.join(__dirname, "public")));
-app.use("/fonts", express.static(path.join(__dirname, "node_modules/bootstrap/dist/fonts")));
-app.use("/bootstrap", express.static(path.join(__dirname, "node_modules/bootstrap/dist")));
-app.use("/jquery", express.static(path.join(__dirname, "node_modules/jquery/dist")));
+app.use(
+    "/fonts",
+    express.static(path.join(__dirname, "node_modules/bootstrap/dist/fonts"))
+);
+app.use(
+    "/bootstrap",
+    express.static(path.join(__dirname, "node_modules/bootstrap/dist"))
+);
+app.use(
+    "/jquery",
+    express.static(path.join(__dirname, "node_modules/jquery/dist"))
+);
 
-app.use(bodyParser.text({inflate: true, limit: "1mb", type: "text/html"}));
-app.use(bodyParser.json({inflate: true, limit: "1mb", strict: true, type: "application/json"}));
+app.use(bodyParser.text({ inflate: true, limit: "1mb", type: "text/html" }));
+app.use(
+    bodyParser.json({
+        inflate: true,
+        limit: "1mb",
+        strict: true,
+        type: "application/json"
+    })
+);
 
 // Disable caching
 app.disable("etag");
@@ -72,13 +90,18 @@ let wsStatus = "Closed";
 let wsMsgReceived = 0;
 let wsMsgSent = 0;
 let wsMessageQueue = [];
+let wsQueueing = false;
 
 app.post("/websocket/open", (req, res) => {
     let body = req.body;
     if (typeof body === "string") body = JSON.parse(req.body);
-    logger.info("Websocket open for %s", body.url);
+    logger.info(
+        "Websocket open for %s with queueing=%s",
+        body.url,
+        body.queueing
+    );
     if (typeof backProxyAgent !== "undefined")
-        ws = new WebSocket(body.url, {agent: backProxyAgent});
+        ws = new WebSocket(body.url, { agent: backProxyAgent });
     else ws = new WebSocket(body.url);
     //ws = new WebSocket(body.url);
 
@@ -89,6 +112,7 @@ app.post("/websocket/open", (req, res) => {
         wsMsgReceived = 0;
     });
 
+    //if (wsQueueing) {
     ws.on("message", function(message) {
         logger.info("Websocket message received, queing: %s", message);
         wsMessageQueue.push(message);
@@ -96,6 +120,7 @@ app.post("/websocket/open", (req, res) => {
         wsStatus = "Open";
         logMessage(message);
     });
+    //}
 
     ws.on("close", function(code) {
         logger.info("Websocket close confirmed. Code: " + code);
@@ -107,7 +132,7 @@ app.post("/websocket/open", (req, res) => {
         wsStatus = "Error";
     });
     res.type("json");
-    res.status(201).json({op: "open"});
+    res.status(201).json({ op: "open" });
 });
 
 //Process send a message in the websocket
@@ -115,7 +140,7 @@ app.post("/websocket/send", (req, res) => {
     if (wsStatus != "Open") {
         logger.info("Cannot send to Websocket: %s", wsStatus);
         res.type("json");
-        res.status(404).json({status: wsStatus});
+        res.status(404).json({ status: wsStatus });
     } else {
         let body = req.body;
         if (typeof req.body === "object") {
@@ -126,8 +151,25 @@ app.post("/websocket/send", (req, res) => {
         wsMsgSent++;
         ws.send(body);
         logMessage(body);
-        res.type("json");
-        res.status(201).json({});
+        if (wsQueueing) {
+            res.type("json");
+            res.status(201).json({});
+        } else {
+            res.redirect("/websocket/receive");
+            /*
+            if (wsMessageQueue.length > 0) {
+                let msg = wsMessageQueue.shift();
+                logger.info("Receiving queued message: %s", msg);
+                logMessage(msg);
+                res.type("json");
+                res.status(200).send(msg);
+            } else {
+                logger.debug("No more received message (in queue)");
+                res.type("json");
+                res.status(204).json({});
+            }
+            */
+        }
     }
 });
 
@@ -135,7 +177,7 @@ app.post("/websocket/send", (req, res) => {
 app.get("/websocket/check", (req, res) => {
     logger.info("Checking websocket status.");
     res.type("json");
-    res.status(200).json({op: "check", status: wsStatus});
+    res.status(200).json({ op: "check", status: wsStatus });
     logger.info("Status: " + wsStatus);
 });
 
@@ -155,13 +197,18 @@ app.get("/websocket/stats", (req, res) => {
 //Process request to dequeue one message saved from the websocket
 app.get("/websocket/receive", (req, res) => {
     if (wsStatus != "Open") {
-        logger.info("Cannot send to Websocket: %s", wsStatus);
+        logger.info("Cannot receive from Websocket: %s", wsStatus);
         res.type("json");
-        res.status(404).json({status: wsStatus});
+        res.status(404).json({ status: wsStatus });
     } else {
+        //if (wsQueueing) {
         if (wsMessageQueue.length > 0) {
             let msg = wsMessageQueue.shift();
-            logger.info("Receiving queued message: %s", msg);
+            logger.info(
+                "Receiving queued message: %s (type: %s)",
+                msg,
+                typeof msg
+            );
             logMessage(msg);
             res.type("json");
             res.status(200).send(msg);
@@ -170,18 +217,29 @@ app.get("/websocket/receive", (req, res) => {
             res.type("json");
             res.status(204).json({});
         }
+        // } else {
+        //     let errMsg =
+        //         "Trying to receive from queue when queueing is not enabled";
+        //     logger.warn(errMsg);
+        //     res.type("json");
+        //     res.status(404).json({ status: errMsg });
+        //}
     }
 });
 
+/*
 //Process request to dequeue data saved from the websocket
 app.get("/websocket/dequeue", (req, res) => {
     if (wsStatus != "Open") {
         logger.info("Cannot send to Websocket: %s", wsStatus);
         res.type("json");
-        res.status(404).json({status: wsStatus});
+        res.status(404).json({ status: wsStatus });
     } else {
         if (wsMessageQueue.length > 0) {
-            logger.info("Dequeueing websocket data: %s", JSON.stringify(wsMessageQueue));
+            logger.info(
+                "Dequeueing websocket data: %s",
+                JSON.stringify(wsMessageQueue)
+            );
             res.type("json");
             res.status(200).send(wsMessageQueue);
         } else {
@@ -192,13 +250,14 @@ app.get("/websocket/dequeue", (req, res) => {
         wsMessageQueue = [];
     }
 });
+*/
 
 //Process request to close the websocket
 app.post("/websocket/close", (req, res) => {
     if (wsStatus != "Open") {
         logger.info("Cannot send to Websocket: %s", wsStatus);
         res.type("json");
-        res.status(404).json({status: wsStatus});
+        res.status(404).json({ status: wsStatus });
     } else {
         logger.info("Closing websocket.");
         ws.close();
@@ -212,7 +271,7 @@ app.use(function(req, res, next) {
     logger.error(`UNKNOWN ROUTE ${req.originalUrl}`);
     //next(createError(404));
     res.type("json");
-    res.status(404).json({status: "NOT FOUND"});
+    res.status(404).json({ status: "NOT FOUND" });
     // render the error page
 });
 
@@ -221,22 +280,36 @@ app.use(function(err, req, res, next) {
     // set locals, only providing error in development
     res.locals.message = err.message;
     res.locals.error = req.app.get("env") === "development" ? err : {};
-    logger.error(`GENERAL ERROR! URL:${req.originalUrl}\nERROR:${err.message}\nSTACK:${err.stack}`);
+    logger.error(
+        `GENERAL ERROR! URL:${req.originalUrl}\nERROR:${err.message}\nSTACK:${err.stack}`
+    );
 
     // render the error page
     res.status(err.status || 500);
-    res.render("error");
+    res.send({
+        message: err.message,
+        error: err
+    });
+    return;
 });
 
 function logMessage(msg) {
     if (typeof msg == "string") {
-        fs.appendFile(config.logging.file.folder + "messages.json", msg + "\n", err => {
-            if (err) throw err;
-        });
+        fs.appendFile(
+            config.logging.file.folder + "messages.json",
+            msg + "\n",
+            err => {
+                if (err) throw err;
+            }
+        );
     } else {
-        fs.appendFile(config.logging.file.folder + "messages.json", msg.toString() + "\n", err => {
-            if (err) throw err;
-        });
+        fs.appendFile(
+            config.logging.file.folder + "messages.json",
+            msg.toString() + "\n",
+            err => {
+                if (err) throw err;
+            }
+        );
     }
 }
 module.exports = app;
