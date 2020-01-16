@@ -22,7 +22,7 @@ const config = {
     // Step 2. Configure the frontProxy
     // Uncomment/adjust frontProxy if you want to insert Burp at the front (behind the degrader).
     //frontProxy: "http://192.168.9.125:8081", //W
-    frontProxy: "http://192.168.9.106:8081", //H
+    //frontProxy: "http://192.168.9.106:8081", //H
 
     // Step 3. Configure the ws-upgrader
     upgraderPort: 8083,
