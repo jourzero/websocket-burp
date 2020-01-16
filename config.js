@@ -21,15 +21,16 @@ const config = {
 
     // Step 2. Configure the frontProxy
     // Uncomment/adjust frontProxy if you want to insert Burp at the front (behind the degrader).
-    frontProxy: "http://192.168.9.125:8081",
+    //frontProxy: "http://192.168.9.125:8081", //W
+    frontProxy: "http://192.168.9.106:8081", //H
 
     // Step 3. Configure the ws-upgrader
     upgraderPort: 8083,
 
     // Step 4. Configure the backProxy
     // Uncomment/adjust backProxy if you want to insert Burp in the back (before the Target)
-    //backProxy: "http://192.168.9.125:8081",
-    //backProxy: "http://192.168.9.106:8081",
+    //backProxy: "http://192.168.9.125:8081", // W
+    backProxy: "http://192.168.9.106:8081", // H
 
     // Step 5. Configure the App
     // Test App URL (port has to match config in #6). Echoes websocket data after conversion of all chars to uppercase.
