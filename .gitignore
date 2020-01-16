@@ -62,3 +62,5 @@ typings/
 
 # Added manually
 certs/
+proxyReq.json
+req.json

@@ -1,4 +1,5 @@
-FROM node:11
+FROM node:13
+#FROM node:11
 #FROM node:11.6-alpine
 
 RUN apt-get update

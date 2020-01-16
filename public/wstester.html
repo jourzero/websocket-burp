@@ -11,13 +11,12 @@
 
             </table>
         <div>
-            <datalist>
-              <option value="ws://container.local:8084">
-              <option value="ws://127.0.0.1:8084">
-              <option value="wss://echo.websocket.org:443">
-            </datalist> 
-
             <table>
+                <datalist id="urlList">
+                    <option value="ws://container.local:8084">
+                    <option value="ws://127.0.0.1:8084">
+                    <option value="wss://echo.websocket.org:443">
+                </datalist> 
                 <tr> <th>WebSocket URL</th> <td class="dataCol"> <input list="urlList" class="form-control" id="wsUrl" title="WebSocket URL" /> </td> </tr> 
                 <tr> <th>Message</th> <td class="dataCol"><input type="text" class="form-control" id="wsMsg" title="Message to send (JSON or other)" value='{"type":"event","message":"Just a test!"}' /></td> </tr>
                 <tr> <th> Insert Timestamp </th> <td class="dataCol"> <input type="checkbox" id="addTime" title="Add timestamp to JSON message" checked /> </td> </tr> 
