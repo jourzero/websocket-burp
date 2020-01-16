@@ -15,7 +15,7 @@ Lastly, an optional test websocket app (ws-test-app) is added to test the whole 
 // Setup Logger and print start message
 const config = require("./config.js");
 const log = require("./lib/appLogger.js");
-log.info("App %s is starting...", config.appName);
+log.info("WSP: App %s is starting...", config.appName);
 
 // Setup Dependencies for this Express App
 const debug = require("debug")("express-tests:server");
@@ -25,7 +25,7 @@ const app = require("./ws-upgrader"); // Express app
 const testApp = require("./ws-test-app");
 
 // Get port from environment and store in Express.
-const port = config.upgraderPort;
+const port = Number(process.env.WSU_PORT) || config.upgraderPort;
 app.set("port", port);
 
 // Create HTTP server (for Express App)
@@ -39,8 +39,7 @@ server.on("listening", onListening);
 // Print config
 let appConfig = Object.assign({}, config);
 appConfig.logging = "(not shown)";
-log.debug("Config: %s", JSON.stringify(config, null, 2));
-log.debug("App Config: %s", JSON.stringify(appConfig, null, 2));
+//log.debug("WSP App Config: %s", JSON.stringify(appConfig, null, 2));
 
 // Normalize a port into a number, string, or false.
 function normalizePort(val) {
@@ -70,11 +69,11 @@ function onError(error) {
     // handle specific listen errors with friendly messages
     switch (error.code) {
         case "EACCES":
-            log.error(bind + " requires elevated privileges");
+            log.error("WSP: " + bind + " requires elevated privileges");
             process.exit(1);
             break;
         case "EADDRINUSE":
-            log.error(bind + " is already in use");
+            log.error("WSP: " + bind + " is already in use");
             process.exit(1);
             break;
         default:
@@ -88,7 +87,7 @@ function onListening() {
     const bind =
         typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
     log.info(
-        "WebSocket Upgrader API Server started. API Tester at http://127.0.0.1:%s/tester.html",
-        config.upgraderPort
+        "WSP: WebSocket Upgrader API Server started. API Tester at http://127.0.0.1:%s/tester.html",
+        port
     );
 }

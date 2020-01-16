@@ -9,18 +9,18 @@ const log = require("./lib/appLogger.js");
 let options = {};
 
 // Front HTTP/HTTPS proxy to connect to (burp)
-let port = config.testAppPort;
+const port = Number(process.env.WTA_PORT) || config.testAppPort;
 if (typeof port === "undefined") {
-    log.debug("Test app not enabled");
+    log.debug("WTA: Test app not enabled");
     return;
 }
 
 // Configure HTTP Server
 const server = https.createServer(options, (req, res) => {
-    log.debug("Test App received a request for %s", req.url);
+    log.debug("WTA: Test App received a request for %s", req.url);
     //res.writeHead(200);
     //res.end("WebSocket Test App\n");
-    fs.readFile(__dirname + "/public/" + req.url, function(err, data) {
+    fs.readFile(__dirname + "/public/TestApp" + req.url, function(err, data) {
         if (err) {
             res.writeHead(404);
             res.end(JSON.stringify(err));
@@ -36,11 +36,11 @@ const wss = new WebSocket.Server({ server });
 wss.on("connection", function connection(ws) {
     // Echo back incoming messages after conversion to uppercase
     ws.on("message", function incoming(message) {
-        log.debug("Test App Received: %s", message);
-        log.debug("Test App Echo Msg: %s", message.toUpperCase());
+        log.debug("WTA: Test App Received: %s", message);
+        log.debug("WTA: Test App Echo Msg: %s", message.toUpperCase());
         ws.send(message.toUpperCase());
     });
 });
 
-log.info("Starting Test App at http://127.0.0.1:%s/wstester.html", port);
+log.info("WTA: Starting Test App at http://127.0.0.1:%s/wstester.html", port);
 server.listen(port);
