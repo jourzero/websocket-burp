@@ -1,9 +1,9 @@
 {
-    "name": "ws-proxy",
-    "version": "0.0.0",
+    "name": "websocket-burp",
+    "version": "0.0.1",
     "private": true,
     "scripts": {
-        "start": "nodemon --ignore logs/ ws-proxy.js"
+        "start": "nodemon --ignore logs/ app.js"
     },
     "dependencies": {
         "app-root-path": "^2.1.0",

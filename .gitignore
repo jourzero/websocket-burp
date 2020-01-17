@@ -66,3 +66,5 @@ proxyReq.json
 req.json
 build-image.sh
 run-container.sh
+rsync.sh
+.rsyncExclusions.txt

@@ -1,7 +1,7 @@
 const os = require("os");
 const winston = require("winston");
 const appRoot = require("app-root-path");
-const appName = "ws-proxy";
+const appName = "websocket-burp";
 
 const config = {
     appName: appName,

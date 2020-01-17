@@ -1,5 +1,5 @@
 #========================================================================================
-# Dockerfile for ws-proxy
+# Dockerfile for websocket-burp
 # This is a websocket man-in-the-middle proxy that downgrades websocket connections to
 # HTTP and then re-upgrades them to prevent breaking the. This downgrade is meant to
 # to allow fuzzing by using tools such as Burp Suite or OWASP's Zed Attack Proxy. 
@@ -10,10 +10,10 @@
 # ** Example Use **
 # docker build --build-arg HTTP_PROXY_URL=http://192.168.1.100:8081 \
 #              --build-arg TARGET_APP_URL=http://127.0.0.1:8084 \
-#              -t ws-proxy
+#              -t websocket-burp
 # docker run -it --rm -p 127.0.0.1:8082-8084:8082-8084 \
 #                --mount type=bind,source="$PWD",target=/app \
-#                --name ws-proxy ws-proxy
+#                --name websocket-burp websocket-burp
 #========================================================================================
 FROM node:13
 
@@ -49,6 +49,6 @@ ENV WTA_PORT=8084
 EXPOSE 8082 8083 8084
 #ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 
-#CMD DEBUG="express:*,http:*,ws-proxy:*,https-proxy-agent:*,ws:*" PORT=8082 npm start
+#CMD DEBUG="express:*,http:*,websocket-burp:*,https-proxy-agent:*,ws:*" PORT=8082 npm start
 #CMD [ "/bin/bash" ]
 CMD [ "sh", "-c", "env; npm install; npm start" ]

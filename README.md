@@ -1,6 +1,6 @@
-# README for WS-PROXY
+# README for WEBSOCKET-BURP
 
-The ws-proxy.js app starts-up a front-end websocket degrader (ws-degrader.js) so that we can downgrade websocket traffic to HTTP and then later reupgrade it by using a REST API (in ws-upgrader.js). The upgrade app is based on ExpressJS and includes a test web app at http://localhost/tester.html.
+This app starts-up a front-end websocket degrader (ws-degrader.js) so that we can downgrade websocket traffic to HTTP and then later reupgrade it by using a REST API (in ws-upgrader.js). The upgrade app is based on ExpressJS and includes a test web app at http://localhost/tester.html.
 
 The whole reason to downgrade to HTTP is to be able to insert an HTTP fuzzer
 like Burp or OWASP ZAP in the loop for fuzzing purposes.
@@ -29,12 +29,12 @@ Run this app using these commands:
 ```bash
 $ docker build --build-arg HTTP_PROXY_URL=http://192.168.1.100:8081 \
                --build-arg TARGET_APP_URL=http://127.0.0.1:8084 \
-               -t ws-proxy
+               -t websocket-burp
 <OUTPUT SUPPRESSED>
 
 $ docker run -it --rm -p 127.0.0.1:8082-8084:8082-8084 \
                  --mount type=bind,source="$PWD",target=/app \
-                 --name ws-proxy ws-proxy
+                 --name websocket-burp websocket-burp
 WSU_PORT=8083
 NODE_VERSION=13.6.0
 HOSTNAME=9ac984d2d53d
@@ -55,15 +55,15 @@ audited 375 packages in 3.056s
 found 0 vulnerabilities
 
 
-> ws-proxy@0.0.0 start /app
-> nodemon --ignore logs/ ws-proxy.js
+> websocket-burp@0.0.0 start /app
+> nodemon --ignore logs/ app.js
 
 [nodemon] 2.0.2
 [nodemon] to restart at any time, enter `rs`
 [nodemon] watching dir(s): *.*
 [nodemon] watching extensions: js,mjs,json
-[nodemon] starting `node ws-proxy.js`
-info: WSP: App ws-proxy is starting...
+[nodemon] starting `node app.js`
+info: WSP: App websocket-burp is starting...
 info: WSD: Using front proxy server http://192.168.9.125:8081
 debug: WSD: Created proxy server with options: {"target":"http://127.0.0.1:8084","agent":{"secureProxy":false,"proxy":{"protocol":"http:","slashes":true,"auth":null,"host":"192.168.9.125","port":8081,"hostname":"192.168.9.125","hash":null,"search":null,"query":null,"href":"http://192.168.9.125:8081/"}},"prependPath":true}
 info: WSD: WebSocket Degrader Reverse Proxy Server at http://127.0.0.1:8082 fronting the target app at http://127.0.0.1:8084
