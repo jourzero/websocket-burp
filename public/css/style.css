@@ -96,6 +96,41 @@ body {
     width: 80%;
 }
 
+.ws-message {
+        width: 90%;
+        height: 150px;
+        /* padding: 12px 20px; 
+        box-sizing: border-box;
+        border: 2px solid #ccc;
+        border-radius: 4px;
+        background-color: #f8f8f8;
+        resize: none; */
+        text-align: left;
+        vertical-align: top;
+        overflow-wrap: break-word;
+      }
+}
+
+/*
+textarea {
+    text-rendering: auto;
+    color: -internal-light-dark-color(black, white);
+    letter-spacing: normal;
+    word-spacing: normal;
+    text-transform: none;
+    text-indent: 0px;
+    text-shadow: none;
+    display: inline-block;
+    text-align: start;
+    background-color: -internal-light-dark-color(white, black);
+    flex-direction: column;
+    resize: auto;
+    cursor: text;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+}
+*/
+
 .statusTab,
 td {
     text-align: left;

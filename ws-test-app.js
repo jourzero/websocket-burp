@@ -18,9 +18,8 @@ if (typeof port === "undefined") {
 // Configure HTTP Server
 const server = https.createServer(options, (req, res) => {
     log.debug("WTA: Test App received a request for %s", req.url);
-    //res.writeHead(200);
-    //res.end("WebSocket Test App\n");
-    fs.readFile(__dirname + "/public/TestApp" + req.url, function(err, data) {
+    //fs.readFile(__dirname + "/public/TestApp" + req.url, function(err, data) {
+    fs.readFile(__dirname + "/public" + req.url, function(err, data) {
         if (err) {
             res.writeHead(404);
             res.end(JSON.stringify(err));

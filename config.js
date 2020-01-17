@@ -28,11 +28,14 @@ const config = {
             filename: `${appRoot}/logs/app.log`
         },
         console: {
-            format: winston.format.simple(),
+            format: winston.format.combine(
+                winston.format.timestamp(),
+                winston.format.colorize(),
+                winston.format.simple()
+            ),
             level: "debug",
             handleExceptions: true,
-            json: false,
-            colorize: true
+            json: false
         }
     }
 };

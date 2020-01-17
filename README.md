@@ -27,14 +27,24 @@ The following ports are used (by default):
 Run this app using these commands:
 
 ```bash
+# Build with default URL values
 $ docker build --build-arg HTTP_PROXY_URL=http://192.168.1.100:8081 \
                --build-arg TARGET_APP_URL=http://127.0.0.1:8084 \
                -t websocket-burp
-<OUTPUT SUPPRESSED>
+[...]
+
+# Run with specific URL values
+echo "
+HTTP_PROXY_FRONT=192.168.9.125:8081
+HTTP_PROXY_BACK=192.168.9.125:8081
+TARGET_APP_URL=http://echo.websocket.org
+" > .run
 
 $ docker run -it --rm -p 127.0.0.1:8082-8084:8082-8084 \
                  --mount type=bind,source="$PWD",target=/app \
+                 --env-file .run
                  --name websocket-burp websocket-burp
+
 WSU_PORT=8083
 NODE_VERSION=13.6.0
 HOSTNAME=9ac984d2d53d

@@ -20,6 +20,7 @@ const createError = require("http-errors"),
 const httpBackProxyURL = process.env.HTTP_PROXY_BACK;
 
 // HTTP/HTTPS proxy to connect to
+// TODO: check URL host, port, protocol
 let backProxyAgent;
 if (typeof httpBackProxyURL !== "undefined") {
     let backProxyUrl = url.parse(httpBackProxyURL);

@@ -39,6 +39,7 @@ let proxyOptions = {
 };
 
 // Front HTTP/HTTPS proxy to connect to (burp)
+// TODO: check URL host, port, protocol
 let frontProxyAgent;
 if (typeof httpFrontProxyURL !== "undefined") {
     let frontProxyUrl = url.parse(httpFrontProxyURL);

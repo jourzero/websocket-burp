@@ -47,7 +47,7 @@ ENV WSD_PORT=8082
 ENV WSU_PORT=8083 
 ENV WTA_PORT=8084 
 EXPOSE 8082 8083 8084
-#ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 
 #CMD DEBUG="express:*,http:*,websocket-burp:*,https-proxy-agent:*,ws:*" PORT=8082 npm start
 #CMD [ "/bin/bash" ]

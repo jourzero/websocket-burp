@@ -81,7 +81,7 @@ class FakeWebSocket {
                 //onmessage(event);
             }
             // If it's a redirect, we probably got here right after sending a message. In any case, follow the redirect.
-            if (data.redirect) {
+            else if (data.redirect) {
                 console.debug("Redirected!", JSON.stringify(data));
                 sendGetRequest(data.redirect);
             } else {
@@ -152,12 +152,19 @@ function openWS() {
 
 function sendToWS() {
     let msg = $("#wsMsg").val();
-    let msgObj = JSON.parse(msg);
-    msgObj.wsSendTime = new Date();
-    msg = JSON.stringify(msgObj);
-    console.debug("Sending message", msg);
-    $("#wsMsg").val(msg);
-    socket.send(msg);
+    let messages = $("#wsMsg")
+        .val()
+        .split("\n");
+    messages.forEach(msg => {
+        if (msg != "") {
+            //let msgObj = JSON.parse(msg);
+            //msgObj.wsSendTime = new Date();
+            //msg = JSON.stringify(msgObj);
+            //$("#wsMsg").val(msg);
+            console.debug("Sending message", msg);
+            socket.send(msg);
+        }
+    });
 }
 
 function checkWS() {

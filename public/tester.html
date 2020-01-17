@@ -18,7 +18,14 @@
         </div>
         <div>
             <span>Message:</span>
+            <!--
             <input type="text" class="form-control" id="wsMsg" title="Message to send (JSON or other)" value='{"type":"event","message":"Just a test!"}' />
+            <input type="textarea" rows="10" class="ws-message" id="wsMsg" title="Message to send (JSON or other)" 
+                   value='{"type":"event","message":"Just a test!"}' />
+            -->
+            <textarea rows="10" class="ws-message" id="wsMsg" title="Message to send (JSON or other)" 
+                   value='{"type":"event","message":"Just a test!"}'>
+                   </textarea>
         </div>
         <br />
         <div>
@@ -45,4 +52,9 @@
             <span id="wsData"></span>
         </div>
     </body>
+    <script>
+        let msg = $("#wsMsg").val();
+        if (msg === "")
+            $("#wsMsg").val('{"type":"event","message":"Just a test!"}');
+    </script>
 </html>
