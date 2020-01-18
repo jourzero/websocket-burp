@@ -1,0 +1,61 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run docker-build.sh",
+            "type": "shell",
+            "command": "./build-image.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Run docker-run.sh",
+            "type": "shell",
+            "command": "./run-container.sh",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Run docker-bash.sh",
+            "type": "shell",
+            "command": "docker-bash.sh",
+            "problemMatcher": []
+        },
+        {
+            "label": "Open Target App",
+            "type": "shell",
+            "command": "open http://container.local:8082/wstester.html",
+            "problemMatcher": []
+        },
+        {
+            "label": "Open WS Upgrader Tester",
+            "type": "shell",
+            "command": "open http://container.local:8083/tester.html",
+            "problemMatcher": []
+        },
+        {
+            "label": "Open Test App",
+            "type": "shell",
+            "command": "open http://container.local:8084/wstester.html",
+            "problemMatcher": []
+        },
+        {
+            "label": "Show Listeners",
+            "type": "shell",
+            "command": "lsof -P -n -iTCP -sTCP:LISTEN",
+            "problemMatcher": []
+        },
+        {
+            "label": "Tail App Logs",
+            "type": "shell",
+            "command": "tail -f logs/app.log",
+            "problemMatcher": []
+        }
+    ]
+}

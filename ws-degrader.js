@@ -1,4 +1,4 @@
-const { http, https } = require("follow-redirects"),
+const {http, https} = require("follow-redirects"),
     httpProxy = require("http-proxy"),
     config = require("./config.js"),
     HttpsProxyAgent = require("https-proxy-agent"),
@@ -22,10 +22,7 @@ if (typeof targetAppURL === undefined) {
 } else {
     let pu = url.parse(targetAppURL);
     if (pu.host === null || !pu.protocol.startsWith("http")) {
-        log.error(
-            "Target App URL %s is invalid, exiting immediately!",
-            targetAppURL
-        );
+        log.error("Target App URL %s is invalid, exiting immediately!", targetAppURL);
         process.exit(2);
     } else {
         log.info("Target App URL: %s (valid)", targetAppURL);
@@ -50,10 +47,7 @@ if (typeof httpFrontProxyURL !== "undefined") {
 
 // Setup our server to proxy standard HTTP requests
 let proxy = new httpProxy.createProxyServer(proxyOptions);
-log.debug(
-    "WSD: Created proxy server with options: %s",
-    JSON.stringify(proxyOptions)
-);
+log.debug("WSD: Created proxy server with options: %s", JSON.stringify(proxyOptions));
 
 // Create a server
 const server = http.createServer(function(req, res) {
@@ -61,7 +55,7 @@ const server = http.createServer(function(req, res) {
 });
 
 if (!useHttpProxyWs) {
-    const wss = new WebSocket.Server({ noServer: true });
+    const wss = new WebSocket.Server({noServer: true});
     //wss.on("open", function() { log.debug("WSD: WS open event"); });
     //wss.on("ping", function(data) { log.debug("WSD: WS ping event"); });
     //wss.on("pong", function(data) { log.debug("WSD: WS pong event"); });
@@ -77,11 +71,7 @@ if (!useHttpProxyWs) {
 
         // Send message to ws-upgrader REST API
         ws.on("message", function(message) {
-            log.debug(
-                "WSD: WS message event (%s): %s",
-                typeof message,
-                message
-            );
+            log.debug("WSD: WS message event (%s): %s", typeof message, message);
             wsSend(message, ws);
         });
 
@@ -143,21 +133,22 @@ const upgUriBase = "http://127.0.0.1:" + config.upgraderPort + upgBasePath;
 // Send request to ws-upgrader to open the WebSocket
 function wsOpen() {
     let body = {};
-    log.info("WSD: Sending WS open request to ws-upgrader: %s", body);
+    log.info("WSD: Sending WS open request to ws-upgrader");
     body.url = targetAppURL;
     sendHttpReq(upgUriBase + "open", "POST", body, null);
 }
 
 // Send request to ws-upgrader to send a message into the WebSocket
 function wsSend(body, ws) {
-    log.info("WSD: Sending WS message to ws-upgrader: %s", body);
+    log.info("WSD: Sending WS message to ws-upgrader");
+    log.info("WSD-OUT: %s", body);
     sendHttpReq(upgUriBase + "send", "POST", body, ws);
 }
 
 // Send request to ws-upgrader to close the WebSocket
 function wsClose() {
     let body = {};
-    log.info("WSD: Sending WS close request to ws-upgrader: %s", body);
+    log.info("WSD: Sending WS close request to ws-upgrader");
     sendHttpReq(upgUriBase + "close", "POST", body, null);
 }
 
@@ -172,22 +163,16 @@ function sendHttpReq(url, method, body, ws) {
     } else if (typeof body === "object") {
         bodyString = JSON.stringify(body);
     }
-    log.debug(
-        "WSD: Sending %s request to %s with body %s",
-        method,
-        url,
-        bodyString
-    );
+    log.debug("WSD: Sending %s request to %s with body %s", method, url, bodyString);
     let opts = {};
     opts.method = method;
-    if (method === "POST")
-        opts.headers = { "Content-Type": "application/json" };
+    if (method === "POST") opts.headers = {"Content-Type": "application/json"};
     if (typeof frontProxyAgent !== "undefined") opts.agent = frontProxyAgent;
 
     let req = http.request(url, opts, function(res) {
         res.setEncoding("utf8");
         res.on("data", function(data) {
-            log.debug("WSD: Response data: %s", data);
+            log.info("WSD-IN: %s", data);
             if (typeof ws !== "undefined" && ws != null) {
                 ws.send(data);
             }

@@ -19,7 +19,7 @@ if (typeof port === "undefined") {
 const server = https.createServer(options, (req, res) => {
     log.debug("WTA: Test App received a request for %s", req.url);
     //fs.readFile(__dirname + "/public/TestApp" + req.url, function(err, data) {
-    fs.readFile(__dirname + "/public" + req.url, function(err, data) {
+    fs.readFile(__dirname + "/public/TestApp" + req.url, function(err, data) {
         if (err) {
             res.writeHead(404);
             res.end(JSON.stringify(err));
@@ -31,7 +31,7 @@ const server = https.createServer(options, (req, res) => {
 });
 
 // Add WebSocket Support
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({server});
 wss.on("connection", function connection(ws) {
     // Echo back incoming messages after conversion to uppercase
     ws.on("message", function incoming(message) {

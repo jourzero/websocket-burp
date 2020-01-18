@@ -1,25 +1,25 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>WebSocket Tester</title>
+        <title>Test App</title>
         <link rel="icon" href="#" />
         <link rel="stylesheet" type="text/css" href="style.css" />
         <script type="text/javascript" src="jquery.min.js"></script>
     </head>
     <body>
-        <h2>WebSocket Tester Client</h2>
+        <h2>Test App for WebSocket-Burp</h2>
 
             </table>
         <div>
             <table>
                 <datalist id="urlList">
-                    <option value="ws://127.0.0.1:8082">
+                    <option value="ws://127.0.0.1:8082" "selected">
                     <option value="ws://127.0.0.1:8084">
                     <option value="wss://echo.websocket.org:443">
                     <option value="ws://container.local:8082">
                     <option value="ws://container.local:8084">
                 </datalist> 
-                <tr> <th>WebSocket URL</th> <td class="dataCol"> <input list="urlList" class="form-control" id="wsUrl" title="WebSocket URL" /> </td> </tr> 
+                <tr> <th>WebSocket URL</th> <td class="dataCol"> <input list="urlList" class="form-control" id="wsUrl" title="WebSocket URL" value="ws://127.0.0.1:8082" /> </td> </tr> 
                 <tr> <th>Message</th> <td class="dataCol"><input type="text" class="form-control" id="wsMsg" title="Message to send (JSON or other)" value='{"type":"event","message":"Just a test!"}' /></td> </tr>
                 <tr> <th>Insert Timestamp</th><td class="dataCol"> <input type="checkbox" id="addTime" title="Add timestamp to JSON message" checked /> </td> </tr> 
             </table>

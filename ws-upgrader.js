@@ -51,24 +51,13 @@ app.use(reqLogger);
 //app.use(log("dev"));
 app.use(cookieParser());
 // Don't use body parser to get full control of body parsing (by commenting-out the following line)
-app.use(
-    express.json({ type: "application/json", strict: false, limit: "5mb" })
-);
+app.use(express.json({type: "application/json", strict: false, limit: "5mb"}));
 app.use(express.static(path.join(__dirname, "public")));
-app.use(
-    "/fonts",
-    express.static(path.join(__dirname, "node_modules/bootstrap/dist/fonts"))
-);
-app.use(
-    "/bootstrap",
-    express.static(path.join(__dirname, "node_modules/bootstrap/dist"))
-);
-app.use(
-    "/jquery",
-    express.static(path.join(__dirname, "node_modules/jquery/dist"))
-);
+app.use("/fonts", express.static(path.join(__dirname, "node_modules/bootstrap/dist/fonts")));
+app.use("/bootstrap", express.static(path.join(__dirname, "node_modules/bootstrap/dist")));
+app.use("/jquery", express.static(path.join(__dirname, "node_modules/jquery/dist")));
 
-app.use(bodyParser.text({ inflate: true, limit: "1mb", type: "text/html" }));
+app.use(bodyParser.text({inflate: true, limit: "1mb", type: "text/html"}));
 app.use(
     bodyParser.json({
         inflate: true,
@@ -96,13 +85,9 @@ let wsQueueing = false;
 app.post("/websocket/open", (req, res) => {
     let body = req.body;
     if (typeof body === "string") body = JSON.parse(req.body);
-    log.info(
-        "WSU: Websocket open for %s with queueing=%s",
-        body.url,
-        body.queueing
-    );
+    log.info("WSU: Websocket open for %s with queueing=%s", body.url, body.queueing);
     if (typeof backProxyAgent !== "undefined")
-        ws = new WebSocket(body.url, { agent: backProxyAgent });
+        ws = new WebSocket(body.url, {agent: backProxyAgent});
     else ws = new WebSocket(body.url);
     //ws = new WebSocket(body.url);
 
@@ -115,7 +100,8 @@ app.post("/websocket/open", (req, res) => {
 
     //if (wsQueueing) {
     ws.on("message", function(message) {
-        log.info("WSU: Websocket message received, queing: %s", message);
+        log.debug("WSU: Websocket message received, queing");
+        log.info("WSU-IN: %s", message);
         wsMessageQueue.push(message);
         wsMsgReceived++;
         wsStatus = "Open";
@@ -133,7 +119,7 @@ app.post("/websocket/open", (req, res) => {
         wsStatus = "Error";
     });
     res.type("json");
-    res.status(201).json({ op: "open" });
+    res.status(201).json({op: "open"});
 });
 
 //Process send a message in the websocket
@@ -141,14 +127,15 @@ app.post("/websocket/send", (req, res) => {
     if (wsStatus != "Open") {
         log.info("WSU: Cannot send to Websocket: %s", wsStatus);
         res.type("json");
-        res.status(404).json({ status: wsStatus });
+        res.status(404).json({status: wsStatus});
     } else {
         let body = req.body;
         if (typeof req.body === "object") {
             log.debug("WSU: Stringifying body prior to socket insertion");
             body = JSON.stringify(req.body);
         }
-        log.info("WSU: Websocket message sent: %s", body);
+        log.debug("WSU: Websocket message sent");
+        log.info("WSU-OUT: %s", body);
         wsMsgSent++;
         ws.send(body);
         logMessage(body);
@@ -178,7 +165,7 @@ app.post("/websocket/send", (req, res) => {
 app.get("/websocket/check", (req, res) => {
     log.info("WSU: Checking websocket status.");
     res.type("json");
-    res.status(200).json({ op: "check", status: wsStatus });
+    res.status(200).json({op: "check", status: wsStatus});
     log.info("WSU: Status: " + wsStatus);
 });
 
@@ -200,16 +187,12 @@ app.get("/websocket/receive", (req, res) => {
     if (wsStatus != "Open") {
         log.info("WSU: Cannot receive from Websocket: %s", wsStatus);
         res.type("json");
-        res.status(404).json({ status: wsStatus });
+        res.status(404).json({status: wsStatus});
     } else {
         //if (wsQueueing) {
         if (wsMessageQueue.length > 0) {
             let msg = wsMessageQueue.shift();
-            log.info(
-                "WSU: Receiving queued message: %s (type: %s)",
-                msg,
-                typeof msg
-            );
+            log.info("WSU: Dequeueing message (%s): %s", typeof msg, msg);
             logMessage(msg);
             res.type("json");
             res.status(200).send(msg);
@@ -233,7 +216,7 @@ app.post("/websocket/close", (req, res) => {
     if (wsStatus != "Open") {
         log.info("WSU: Cannot send to Websocket: %s", wsStatus);
         res.type("json");
-        res.status(404).json({ status: wsStatus });
+        res.status(404).json({status: wsStatus});
     } else {
         log.info("WSU: Closing websocket.");
         ws.close();
@@ -247,7 +230,7 @@ app.use(function(req, res, next) {
     log.error(`WSU: UNKNOWN ROUTE ${req.originalUrl}`);
     //next(createError(404));
     res.type("json");
-    res.status(404).json({ status: "NOT FOUND" });
+    res.status(404).json({status: "NOT FOUND"});
     // render the error page
 });
 
@@ -271,21 +254,13 @@ app.use(function(err, req, res, next) {
 
 function logMessage(msg) {
     if (typeof msg == "string") {
-        fs.appendFile(
-            config.logging.file.folder + "messages.json",
-            msg + "\n",
-            err => {
-                if (err) throw err;
-            }
-        );
+        fs.appendFile(config.logging.file.folder + "messages.json", msg + "\n", err => {
+            if (err) throw err;
+        });
     } else {
-        fs.appendFile(
-            config.logging.file.folder + "messages.json",
-            msg.toString() + "\n",
-            err => {
-                if (err) throw err;
-            }
-        );
+        fs.appendFile(config.logging.file.folder + "messages.json", msg.toString() + "\n", err => {
+            if (err) throw err;
+        });
     }
 }
 module.exports = app;

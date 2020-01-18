@@ -17,10 +17,11 @@ const config = {
     // Optionally, configure logging (shouldn't be needed)
     logging: {
         file: {
-            format: winston.format.json(), // This format shouldn't cause CRLF issues
+            //format: winston.format.json(), // This format shouldn't cause CRLF issues
+            format: winston.format.combine(winston.format.timestamp(), winston.format.simple()),
             level: "info",
             handleExceptions: true,
-            json: true,
+            json: false,
             colorize: false,
             maxsize: 5242880, // 5MB
             maxFiles: 2,
@@ -29,7 +30,7 @@ const config = {
         },
         console: {
             format: winston.format.combine(
-                winston.format.timestamp(),
+                //winston.format.timestamp(),
                 winston.format.colorize(),
                 winston.format.simple()
             ),
