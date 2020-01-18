@@ -19,7 +19,7 @@ const config = {
         file: {
             //format: winston.format.json(), // This format shouldn't cause CRLF issues
             format: winston.format.combine(winston.format.timestamp(), winston.format.simple()),
-            level: "info",
+            level: "debug",
             handleExceptions: true,
             json: false,
             colorize: false,
