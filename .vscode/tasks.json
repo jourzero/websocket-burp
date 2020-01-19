@@ -30,7 +30,7 @@
         {
             "label": "Open Target App",
             "type": "shell",
-            "command": "open http://container.local:8082/wstester.html",
+            "command": "open http://container.local:8082",
             "problemMatcher": []
         },
         {
@@ -42,7 +42,7 @@
         {
             "label": "Open Test App",
             "type": "shell",
-            "command": "open http://container.local:8084/wstester.html",
+            "command": "open http://container.local:8084",
             "problemMatcher": []
         },
         {
@@ -54,7 +54,13 @@
         {
             "label": "Tail App Logs",
             "type": "shell",
-            "command": "tail -f logs/app.log",
+            "command": "tail -100f logs/app.log",
+            "problemMatcher": []
+        },
+        {
+            "label": "Tail WebSocket Message Logs",
+            "type": "shell",
+            "command": "tail -100f logs/app.log | grep '^info: WSU-'",
             "problemMatcher": []
         }
     ]

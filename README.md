@@ -9,9 +9,24 @@ Lastly, a test websocket app (ws-test-app) is included to test the whole chain.
 
 ## Proxy chaining used
 
-This app implements this proxy chaining:
+### Normal WebSocket Sequence
+
+Normally, the browser would upgrade from HTTP to WebSocket using these kinds of interactions:
+![Normal Websocket Sequence](doc/normal-ws-sequence.png)
+
+### Proxied WebSocket Sequence
+
+This app implements this proxy chaining to allow insertion of Burp into the mix, as an HTTP MITM to allow attacks:
 
 Browser --> ws-degrader --> Burp(front) --> ws-upgrader --> Burp(back) --> Target App
+
+A happy path sequence would look like this (with Burp behind the ws-degrader):
+![Websocket Attack Sequence](doc/proxied-ws-seq-happypath.png)
+
+### Attack Sequence
+
+After getting normal payloads using the happy path, then Burp can use the good payloads and fuzz them to attack the app:
+![Websocket Attack Sequence](doc/proxied-ws-seq-attack.png)
 
 ## Default Ports
 
