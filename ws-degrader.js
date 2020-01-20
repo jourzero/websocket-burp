@@ -127,7 +127,7 @@ log.info(
 );
 
 // Upgrader config
-const upgBasePath = "/websocket/";
+const upgBasePath = "/ws/";
 const upgUriBase = "http://127.0.0.1:" + config.upgraderPort + upgBasePath;
 
 // Send request to ws-upgrader to open the WebSocket

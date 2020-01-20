@@ -82,14 +82,14 @@ let wsMsgSent = 0;
 let wsMessageQueue = [];
 let wsQueueing = false;
 
-app.post("/websocket/open", (req, res) => {
+app.post("/ws/open", (req, res) => {
     let body = req.body;
     if (typeof body === "string") body = JSON.parse(req.body);
     log.info("WSU: Websocket open for %s with queueing=%s", body.url, body.queueing);
+    wsQueueing = body.queueing;
     if (typeof backProxyAgent !== "undefined")
         ws = new WebSocket(body.url, {agent: backProxyAgent});
     else ws = new WebSocket(body.url);
-    //ws = new WebSocket(body.url);
 
     ws.on("open", function(message) {
         log.info("WSU: Websocket open confirmed");
@@ -98,16 +98,14 @@ app.post("/websocket/open", (req, res) => {
         wsMsgReceived = 0;
     });
 
-    //if (wsQueueing) {
     ws.on("message", function(message) {
-        log.debug("WSU: Websocket message received, queing");
-        log.info("WSU-IN: %s", message);
+        log.debug("WSU: Queuing incoming websocket data of type: %s", typeof message);
+        if (typeof message === "string") log.info("WSU-IN: %s", message);
         wsMessageQueue.push(message);
         wsMsgReceived++;
         wsStatus = "Open";
         logMessage(message);
     });
-    //}
 
     ws.on("close", function(code) {
         log.info("WSU: Websocket close confirmed. Code: " + code);
@@ -123,7 +121,7 @@ app.post("/websocket/open", (req, res) => {
 });
 
 //Process send a message in the websocket
-app.post("/websocket/send", (req, res) => {
+app.post("/ws/send", (req, res) => {
     if (wsStatus != "Open") {
         log.info("WSU: Cannot send to Websocket: %s", wsStatus);
         res.type("json");
@@ -143,26 +141,13 @@ app.post("/websocket/send", (req, res) => {
             res.type("json");
             res.status(201).json({});
         } else {
-            res.redirect("/websocket/receive");
-            /*
-            if (wsMessageQueue.length > 0) {
-                let msg = wsMessageQueue.shift();
-                log.info("WSU: Receiving queued message: %s", msg);
-                logMessage(msg);
-                res.type("json");
-                res.status(200).send(msg);
-            } else {
-                log.debug("WSU: No more received message (in queue)");
-                res.type("json");
-                res.status(204).json({});
-            }
-            */
+            res.redirect("/ws/receive");
         }
     }
 });
 
 //Process request to check the websocket
-app.get("/websocket/check", (req, res) => {
+app.get("/ws/check", (req, res) => {
     log.info("WSU: Checking websocket status.");
     res.type("json");
     res.status(200).json({op: "check", status: wsStatus});
@@ -170,7 +155,7 @@ app.get("/websocket/check", (req, res) => {
 });
 
 //Process request to check the websocket
-app.get("/websocket/stats", (req, res) => {
+app.get("/ws/stats", (req, res) => {
     log.info("WSU: Getting websocket stats.");
     let stats = {};
     stats.op = "stats";
@@ -183,36 +168,34 @@ app.get("/websocket/stats", (req, res) => {
 });
 
 //Process request to dequeue one message saved from the websocket
-app.get("/websocket/receive", (req, res) => {
+app.get("/ws/receive", (req, res) => {
     if (wsStatus != "Open") {
         log.info("WSU: Cannot receive from Websocket: %s", wsStatus);
         res.type("json");
         res.status(404).json({status: wsStatus});
     } else {
-        //if (wsQueueing) {
         if (wsMessageQueue.length > 0) {
             let msg = wsMessageQueue.shift();
-            log.info("WSU: Dequeueing message (%s): %s", typeof msg, msg);
-            logMessage(msg);
-            res.type("json");
-            res.status(200).send(msg);
+            log.info("WSU: Dequeueing message of type %s", typeof msg);
+            if (typeof msg === "string") {
+                log.info("WSU: Message: %s", msg);
+                res.type("json");
+                logMessage(msg);
+                res.status(200).send(msg);
+            } else if (typeof msg === "object") {
+                //res.type("application/octet-stream");
+                res.status(200).send(Buffer.from(msg));
+            }
         } else {
             log.debug("WSU: No more received message (in queue)");
             res.type("json");
-            res.status(204).json({});
+            res.status(204).send({});
         }
-        // } else {
-        //     let errMsg =
-        //         "Trying to receive from queue when queueing is not enabled";
-        //     log.warn(errMsg);
-        //     res.type("json");
-        //     res.status(404).json({ status: errMsg });
-        //}
     }
 });
 
 //Process request to close the websocket
-app.post("/websocket/close", (req, res) => {
+app.post("/ws/close", (req, res) => {
     if (wsStatus != "Open") {
         log.info("WSU: Cannot send to Websocket: %s", wsStatus);
         res.type("json");

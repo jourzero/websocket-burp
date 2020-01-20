@@ -66,3 +66,4 @@ proxyReq.json
 req.json
 rsync.sh
 .rsyncExclusions.txt
+private/

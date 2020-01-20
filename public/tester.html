@@ -6,10 +6,8 @@
         <link rel="stylesheet" type="text/css" href="css/style.css" />
         <script type="text/javascript" src="/jquery/jquery.min.js"></script>
         <link rel="stylesheet" type="text/css" href="/bootstrap/css/bootstrap.min.css" />
-        <script type="text/javascript" src="js/FakeWebSocket.js"></script>
-        <script type="text/javascript" src="js/cookies.js"></script>
     </head>
-    <body onload="getAllCookies()">
+    <body onload="">
         <h2>Tester for WS-Upgrader REST Service</h2>
         <div>
             <span>Target App WebSocket URL:</span>
@@ -18,17 +16,35 @@
                 class="form-control"
                 id="wsUrl"
                 title="WebSocket URL (ws://... or wss:/...)"
-                value="ws://127.0.0.1:8084"
-                value2="wss://echo.websocket.org:443"
+                onchange="saveAllValues()"
             />
             <input
                 type="checkbox"
                 id="wsQueueing"
                 name="wsQueueing"
-                title="Enable queueing"
+                title="Queueing: do not redirect to /ws/receive from /ws/send (dequeue later)."
                 value="1"
+                onchange="saveAllValues();getSettings();"
             />
             Queueing
+            <input
+                type="checkbox"
+                id="autoUpdate"
+                name="Auto Update"
+                title="Auto Update Status and Stats"
+                value="1"
+                onchange="saveAllValues();getSettings();"
+            />
+            Auto Update
+            <input
+                type="checkbox"
+                id="autoPoll"
+                name="Auto Poll"
+                title="Auto Poll /ws/receive"
+                value="0"
+                onchange="saveAllValues();getSettings();setupAutoPoll()"
+            />
+            Auto Poll
         </div>
         <div>
             <span>Message:</span>
@@ -42,9 +58,8 @@
                 class="ws-message"
                 id="wsMsg"
                 title="Message to send (JSON or other)"
-                value='{"type":"event","message":"Just a test!"}'
-            >
-            </textarea>
+                onchange="saveAllValues()"
+            ></textarea>
         </div>
         <br />
         <div>
@@ -75,7 +90,7 @@
             </button>
             <button
                 type="button"
-                id="button-check-ws"
+                id="button-stats-ws"
                 class="btn btn-primary btn-lg"
                 onclick="statsWS()"
             >
@@ -83,13 +98,12 @@
             </button>
             <button
                 type="button"
-                id="button-dequeue-ws"
+                id="button-receive-ws"
                 class="btn btn-primary btn-lg"
                 onclick="receiveWS()"
             >
                 Receive
             </button>
-            <!-- <button type="button" id="button-dequeue-ws" class="btn btn-primary btn-lg" onclick="dequeueWS()" > Dequeue </button> -->
             <button
                 type="button"
                 id="button-close-ws"
@@ -117,4 +131,5 @@
         let msg = $("#wsMsg").val();
         if (msg === "") $("#wsMsg").val('{"type":"event","message":"Just a test!"}');
     </script>
+    <script type="text/javascript" src="js/FakeWebSocket.js"></script>
 </html>

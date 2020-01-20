@@ -1,13 +1,17 @@
-var wsStatus = "Unknown";
-/*
-var currentCommand = "";
-var currentCommands = [];
-var currentResults = [];
-var socket = {};
-*/
-var sessionless = true;
-var wsQueueing = $("#wsQueueing").prop("checked");
-$.ajaxSetup({ cache: false });
+var socket;
+let sStatus = "Unknown";
+let sessionless = true;
+let autoPollInterval = 10 * 1000;
+let autoPollIntervalID;
+let wsQueueing;
+let autoUpdate;
+let autoPoll;
+let autoPollActive = false;
+let reqDelay = 500;
+let wsUrl;
+let wsMsg;
+
+$.ajaxSetup({cache: false});
 
 class FakeWebSocket {
     constructor(url) {
@@ -15,37 +19,39 @@ class FakeWebSocket {
         let server = {};
         server.url = new URL(url);
         server.queueing = wsQueueing;
-        this.sendPostRequest("/websocket/open", JSON.stringify(server));
+        this.sendPostRequest("/ws/open", JSON.stringify(server));
     }
 
     send(msg) {
-        //let data = {};
-        //data.message = msg;
         console.info("Sending message", msg);
-        this.sendPostRequest("/websocket/send", msg);
+        socket.sendPostRequest("/ws/send", msg);
     }
 
     close() {
         console.info("Sending websocket close request");
-        this.sendPostRequest("/websocket/close", {});
+        this.sendPostRequest("/ws/close", {});
     }
 
     checkStatus() {
         console.info("Sending websocket status request");
-        $.getJSON("/websocket/check", function(data) {
+        $.getJSON("/ws/check", function(data) {
             if (data !== undefined && data.status !== undefined) {
                 $("#wsStatus").html(data.status);
                 let statusText = new String(data.status);
+                /*
                 if (statusText.startsWith("Open")) {
                     onopen();
+                } else if (statusText.startsWith("Closed")) {
+                    onclose();
                 }
+                */
             }
         });
     }
 
     getStats() {
         console.info("Sending websocket stats request");
-        $.getJSON("/websocket/stats", function(data) {
+        $.getJSON("/ws/stats", function(data) {
             if (data === undefined) data = "";
             $("#wsStats").html(JSON.stringify(data));
         });
@@ -53,7 +59,7 @@ class FakeWebSocket {
 
     dequeue() {
         console.info("Sending websocket dequeue request");
-        $.getJSON("/websocket/dequeue", function(data) {
+        $.getJSON("/ws/dequeue", function(data) {
             if (data === undefined) data = "";
             $("#wsData").html(JSON.stringify(data));
         });
@@ -61,12 +67,13 @@ class FakeWebSocket {
 
     receive() {
         console.info("Sending websocket receive request");
-        $.getJSON("/websocket/receive", function(data) {
+        $.getJSON("/ws/receive", function(data) {
             if (data === undefined) data = "";
             $("#wsData").html(JSON.stringify(data));
         });
     }
     postRespHandler(data, textStatus, jqXHR) {
+        console.debug("Handling POST response");
         try {
             // Assume that the data is for onmessage() if it's not a string or an object (audio)
             if (
@@ -87,17 +94,14 @@ class FakeWebSocket {
             } else {
                 // If the websocket was just opened, call onopen() after a 5 sec. wait.
                 if (data.op !== undefined && data.op === "open") {
-                    setTimeout("onopen()", 2000);
+                    setTimeout(onopen, 2000);
                 } else if (data.op !== undefined && data.op !== "open") {
                     console.debug("Data:", JSON.stringify(data));
                 } else if (!wsQueueing) {
                     console.debug("Received data:", JSON.stringify(data));
                     $("#wsData").html(JSON.stringify(data));
                 } else {
-                    console.warn(
-                        "Got here with no op data:",
-                        JSON.stringify(data)
-                    );
+                    console.warn("Got here with no op data:", JSON.stringify(data));
                 }
             }
         } catch (err) {
@@ -134,35 +138,25 @@ class FakeWebSocket {
             }
         });
     }
-
-    poll() {
-        this.sendGetRequest("/websocket/receive");
-    }
 } // class FakeWebSocket
 
-// Poll for new messages every 15 seconds
-//setInterval("socket.poll()", 15000);
-
 function openWS() {
-    let wsUrl = $("#wsUrl").val();
+    wsUrl = $("#wsUrl").val();
     wsQueueing = $("#wsQueueing").prop("checked");
     console.debug("Opening WebSocket at", wsUrl);
     socket = new FakeWebSocket(wsUrl);
 }
 
 function sendToWS() {
-    let msg = $("#wsMsg").val();
+    let delay = 0;
     let messages = $("#wsMsg")
         .val()
         .split("\n");
     messages.forEach(msg => {
-        if (msg != "") {
-            //let msgObj = JSON.parse(msg);
-            //msgObj.wsSendTime = new Date();
-            //msg = JSON.stringify(msgObj);
-            //$("#wsMsg").val(msg);
-            console.debug("Sending message", msg);
-            socket.send(msg);
+        if (msg != "" && !msg.startsWith("#") && !msg.startsWith("//")) {
+            window.setTimeout(socket.send, delay, msg);
+            //socket.send(msg);
+            delay += reqDelay;
         }
     });
 }
@@ -177,86 +171,55 @@ function statsWS() {
     socket.getStats();
 }
 
-function dequeueWS() {
-    console.debug("Dequeuing all received WebSocket data.");
-    socket.dequeue();
-}
-
 function receiveWS() {
+    if (typeof socket === "undefined") return;
     console.debug("Receiving one WebSocket message.");
     socket.receive();
+    if (autoUpdate) {
+        checkWS();
+        statsWS();
+    }
 }
 
 function closeWS() {
     console.debug("Closing WebSocket connection.");
     socket.close();
+
+    // Update UI if autoUpdate is enabled
+    if (autoUpdate) {
+        checkWS();
+        statsWS();
+    }
+    //onclose();
+    setButtonsBeforeOpen();
 }
 
 function onopen() {
     console.debug("WebSocket connection opened.");
-    //ui_socketOpened();
-    //ui_socketHasOpened();
-    setAllCookies();
+    setButtonsAfterOpen();
+    getSettings();
 
-    if (sessionless === false) {
-        let version = $("#api_version")[0];
-        let parameters = {
-            applicationKey: applicationKey,
-            verificationCode: verificationCode,
-            speechSynthesisCodec: speechSynthesisCodec,
-            speechRecognitionCodec: speechRecognitionCodec
-        };
-        Object.keys(extraParameters).forEach(function(key) {
-            parameters[key] = extraParameters[key];
-        });
-        extraParameters = {};
-
-        let startSessionCommand = {
-            version: version.options[version.selectedIndex].value,
-            type: "command",
-            command: {
-                name: "startSession",
-                id: applicationStepId,
-                parameters: parameters
-            }
-        };
-        currentCommands.push(startSessionCommand);
-        console.debug(
-            "Sending command:\n" + JSON.stringify(startSessionCommand)
-        );
-        socket.send(JSON.stringify(startSessionCommand));
-
-        currentCommand = "startSession";
-        createNewLog();
+    if (autoUpdate) {
+        checkWS();
+        statsWS();
     }
 }
 
 function onclose() {
-    if (
-        confirm(
-            "Would you like to open logs of the expired session in another window?"
-        )
-    ) {
-        let log = {
-            sessionId: sessionId,
-            commands: commands,
-            results: results
-        };
-        let content = JSON.stringify(log, null, 2);
-        let uriContent = "data:application/json; charset=utf-8 ," + content;
-        window.open().document.write("<pre>" + content + "</pre>");
-    }
-    if (!alert("WebSocket connection closed.")) {
-        window.location.reload(true);
+    setButtonsBeforeOpen();
+
+    if (autoUpdate) {
+        checkWS();
+        statsWS();
     }
 }
 
 function connFailure() {
-    if (
-        confirm(
-            "Connection failed. Would you like to reset connection and session parameters?"
-        )
-    ) {
+    if ($("#autoUpdate").val() === "1") {
+        checkWS();
+        statsWS();
+    }
+    if (confirm("Connection failed. Would you like to reset connection and session parameters?")) {
         reset();
         window.location.reload(true);
     } else {
@@ -264,209 +227,69 @@ function connFailure() {
     }
 }
 
-/*
-function onmessage(event) {
-    console.debug("In onmessage() with data:", JSON.stringify(event));
-    let audioContext = initAudioContext();
-    let audioPlayer = new AudioPlayer(audioContext); // For the play audio command
-    let audioPlayer16k = new AudioPlayer16k(audioContext);
-    let audioPlayerSpeex = new AudioPlayerSpeex(audioContext);
-    let audioPlayerSpeex16k = new AudioPlayerSpeex16k(audioContext);
-    let decCount = 0;
-    console.debug("socket RECEIVED:");
-    if (isOfType("ArrayBuffer", event.data)) {
-        // The play audio command will return ArrayBuffer data to be played
-        console.debug("ArrayBuffer");
-        let newAudio;
+// Re-read the values of checkboxes
+function getSettings() {
+    wsMsg = $("#wsMsg").val();
+    wsQueueing = $("#wsQueueing").prop("checked");
+    autoUpdate = $("#autoUpdate").prop("checked");
+    autoPoll = $("#autoPoll").prop("checked");
+}
 
-        if (speechSynthesisCodec === "speex_nb") {
-            var speexDecoder = new SpeexDecoder({
-                mode: 0,
-                quality: 6,
-                lpcm: true,
-                bits_size: 45.5
-            });
-            speexDecoder.init();
+// Save All Values
+function saveAllValues() {
+    console.log("Saving all UI values to localStorage");
+    localStorage.setItem("wsMsg", $("#wsMsg").val());
+    localStorage.setItem("wsUrl", $("#wsUrl").val());
+    localStorage.setItem("wsQueueing", $("#wsQueueing").prop("checked"));
+    localStorage.setItem("autoUpdate", $("#autoUpdate").prop("checked"));
+    localStorage.setItem("autoPoll", $("#autoPoll").prop("checked"));
+}
 
-            var speex = event.data;
-            var speexFloatArray = new Uint8Array(speex, 0, speex.byteLength);
+// Restore All Values
+function restoreAllValues() {
+    console.log("Restoring all UI values from localStorage");
+    $("#wsUrl").val(localStorage.getItem("wsUrl"));
+    $("#wsMsg").val(localStorage.getItem("wsMsg"));
+    $("#wsQueueing").prop("checked", localStorage.getItem("wsQueueing") === "true");
+    $("#autoUpdate").prop("checked", localStorage.getItem("autoUpdate") === "true");
+    $("#autoPoll").prop("checked", localStorage.getItem("autoPoll") === "true");
+}
 
-            var pcm = speexDecoder.process(speexFloatArray);
-            decCount = 0;
-            console.debug("pcm: " + pcm);
-            if (pcm < 0) {
-                return;
-            }
-            //Playing the audio
-            audioToPlay = new Int16Array(pcm);
-        } else if (speechSynthesisCodec === "speex_wb") {
-            var speexDecoder = new SpeexDecoder({
-                mode: 1,
-                quality: 8,
-                bits_size: 139,
-                lpcm: true
-            });
-            speexDecoder.init();
+function setButtonsBeforeOpen() {
+    $("#button-open-ws").attr("disabled", null);
+    $("#button-check-ws").attr("disabled", "");
+    $("#button-stats-ws").attr("disabled", "");
+    $("#button-send-ws").attr("disabled", "");
+    $("#button-receive-ws").attr("disabled", "");
+    $("#button-close-ws").attr("disabled", "");
+}
 
-            var speex = event.data;
+function setButtonsAfterOpen() {
+    $("#button-open-ws").attr("disabled", "");
+    $("#button-check-ws").attr("disabled", null);
+    $("#button-stats-ws").attr("disabled", null);
+    $("#button-send-ws").attr("disabled", null);
+    $("#button-receive-ws").attr("disabled", null);
+    $("#button-close-ws").attr("disabled", null);
+}
 
-            var speexFloatArray = new Uint8Array(speex, 0, speex.byteLength);
+function setupAutoPoll() {
+    // Poll for new messages if autoPoll is enabled
+    if (autoPoll && !autoPollActive) {
+        console.log("Activating autopoll");
+        autoPollActive = true;
+        autoPollIntervalID = window.setInterval(receiveWS, autoPollInterval);
+    }
 
-            var pcm = speexDecoder.process(speexFloatArray);
-            decCount = 0;
-            // console.log("pcm: " + pcm);
-            if (pcm < 0) {
-                return;
-            }
-            //  console.log("pcm.length: " + pcm.length);
-
-            //Playing the audio
-            audioToPlay = pcm;
-        } else if (speechSynthesisCodec === "opus_wb") {
-            var channels = 1;
-            Decoder.on("decode", function(pcmData) {
-                newAudio = new Int16Array(pcmData);
-
-                let oldAudio = audioToPlay;
-
-                audioToPlay = new Int16Array(oldAudio.length + newAudio.length);
-
-                audioToPlay.set(oldAudio);
-
-                audioToPlay.set(newAudio, oldAudio.length);
-            });
-            Decoder.decode(event.data);
-        } else {
-            newAudio = new Int16Array(event.data);
-
-            let oldAudio = audioToPlay;
-
-            audioToPlay = new Int16Array(oldAudio.length + newAudio.length);
-
-            audioToPlay.set(oldAudio);
-
-            audioToPlay.set(newAudio, oldAudio.length);
-        }
-        // Append received buffer to audioToPlay
-    } else {
-        // event.data should be text and you can parse it
-        let response = JSON.parse(event.data);
-        console.debug(response);
-
-        if (response.sessionId != null) {
-            sessionlessId = response.sessionId;
-        }
-
-        if (response.result) {
-            let result = response.result;
-            if (currentCommand === "startSession") {
-                currentResults.push(response);
-                commands.push(currentCommands);
-                results.push(currentResults);
-                currentCommands = [];
-                currentResults = [];
-                if (result.status.toUpperCase() === "SUCCESS") {
-                    //ui_sessionHasStarted();
-                    sessionId = response.sessionId;
-                    $(".applicationStepId").val(applicationStepId);
-                } else {
-                    alert(JSON.stringify(response, null, 4));
-                    socket.connFailure();
-                }
-            } else if (currentCommand === "endSession") {
-                currentResults.push(response);
-                commands.push(currentCommands);
-                results.push(currentResults);
-                currentCommands = [];
-                currentResults = [];
-                if (result.status.toUpperCase() === "SUCCESS") {
-                    //ui_sessionHasEnded();
-                    // In case socket is not closed by the Server, close it from Client side
-                    if (socket !== undefined) {
-                        socket.close();
-                    }
-                } else {
-                    alert(JSON.stringify(response, null, 4));
-                }
-            } else if (currentCommand === "speechSynthesis") {
-                if (result.status.toUpperCase() === "SUCCESS") {
-                    // Play TTS audio
-
-                    //Here we modify for the good playing of other codecs.
-
-                    if (speechSynthesisCodec === "pcm_16_8k") {
-                        audioPlayer.play(audioToPlay);
-                    } else if (speechSynthesisCodec === "pcm_16_16k") {
-                        console.debug(audioToPlay);
-                        audioPlayer16k.play(audioToPlay);
-                    } else if (speechSynthesisCodec === "speex_nb") {
-                        audioPlayerSpeex.play(audioToPlay); // here removed the divided by 32768
-                    } else if (speechSynthesisCodec === "speex_wb") {
-                        audioPlayerSpeex16k.play(audioToPlay);
-                    } else if (speechSynthesisCodec === "opus_wb") {
-                        audioPlayer16k.play(audioToPlay);
-                    }
-
-                    // Clear buffer
-                    audioToPlay = new Int16Array(0);
-                }
-                currentResults.push(response);
-                commands.push(currentCommands);
-                results.push(currentResults);
-                currentCommands = [];
-                currentResults = [];
-                $("#playaudio_results").text(JSON.stringify(response, null, 4));
-                //ui_ttsStopped();
-            } else if (currentCommand === "speechRecognition") {
-                if (result.final) {
-                    // final result
-                    currentResults.push(response);
-                    commands.push(currentCommands);
-                    results.push(currentResults);
-                    currentCommands = [];
-                    currentResults = [];
-                    $("#sr_results").text(JSON.stringify(response, null, 4));
-                    //ui_stopSRRecording();
-                    if (audioRecorder) {
-                        stopRecording();
-                    }
-                } else {
-                    // partial result
-                    currentResults.push(response);
-                    $("#sr_results").text(JSON.stringify(response, null, 4));
-                }
-            } else if (currentCommand === "UploadDynamicVocabulary") {
-                if (result.final) {
-                    currentResults.push(response);
-                    commands.push(currentCommands);
-                    results.push(currentResults);
-                    currentCommands = [];
-                    currentResults = [];
-                    $("#config_results").text(
-                        JSON.stringify(response, null, 4)
-                    );
-                } else {
-                    // Runtime response
-                    currentResults.push(response);
-                    $("#config_results").text(
-                        JSON.stringify(response, null, 4)
-                    );
-                }
-            } else if (currentCommand === "interpretationCommand") {
-                if (result.final) {
-                    currentResults.push(response);
-                    commands.push(currentCommands);
-                    results.push(currentResults);
-                    currentCommands = [];
-                    currentResults = [];
-                    $("#nle_results").text(JSON.stringify(response, null, 4));
-                }
-            }
-        } else if (response.event) {
-            currentResults.push(response);
-            $("#sr_results").text(JSON.stringify(response, null, 4));
-        }
-        //else { alert(JSON.stringify(response, null, 4)); }
+    if (!autoPoll && autoPollActive) {
+        // Stop autopoll
+        console.log("Deactivating autopoll");
+        autoPollActive = false;
+        window.clearInterval(autoPollIntervalID);
     }
 }
-*/
+
+restoreAllValues();
+getSettings();
+setButtonsBeforeOpen();
+setupAutoPoll();

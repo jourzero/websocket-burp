@@ -1,9 +1,9 @@
-/**
- * jfethier: I tried using the cookie "path" attribute to achieve what is done in the code below but it didn"t work at all.
- */
-function setCookieString(cookieName, cookieValue, daysUntilExpiration) {
+var cookieCrumb;
 
-    var expirationDate = new Date(new Date().getTime() + daysUntilExpiration * 24 * 60 * 60 * 1000).toUTCString(); // current time plus daysUntilExpiration, e.g. "Wed, 07 Mar 2018 19:45:10 GMT"
+function setCookieString(cookieName, cookieValue, daysUntilExpiration) {
+    var expirationDate = new Date(
+        new Date().getTime() + daysUntilExpiration * 24 * 60 * 60 * 1000
+    ).toUTCString(); // current time plus daysUntilExpiration, e.g. "Wed, 07 Mar 2018 19:45:10 GMT"
     var expiresAttribute = "expires=" + expirationDate;
 
     document.cookie = cookieName + "=" + cookieValue + ";" + expiresAttribute + ";path=/";
@@ -17,7 +17,9 @@ function setAllCookies() {
 
     $("select").each(function(index) {
         setCookieString(getCookiePrefix() + $(this).attr("id"), $(this).val(), 7);
-    })
+    });
+
+    localStorage.setItem("wsMsg", $("#wsMsg").val());
 }
 
 function getAllCookies() {
@@ -33,13 +35,8 @@ function getAllCookies() {
     }
 
     $("select").each(function(index) {
-
         if (getCookie(getCookiePrefix() + $(this).attr("id"))) {
             $(this).val(getCookie(getCookiePrefix() + $(this).attr("id")));
-        }
-
-        if ($(this).attr("id") == "sr_engine") {
-            $(this).val("MREC");
         }
     });
 }
@@ -50,13 +47,13 @@ function eraseCookie(name) {
 
 function reset() {
     // REMOVE COOKIES
-    document.cookie.split(";")
-        .forEach(function(cookie) {
-
-            if (cookie.trim().startsWith(getCookiePrefix())) {
-                document.cookie = cookie.trim().replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-            }
-        });
+    document.cookie.split(";").forEach(function(cookie) {
+        if (cookie.trim().startsWith(getCookiePrefix())) {
+            document.cookie = cookie
+                .trim()
+                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        }
+    });
 
     location.reload(true);
 }
@@ -64,9 +61,13 @@ function reset() {
 function getCookie(name) {
     var value = "; " + document.cookie;
     var parts = value.split("; " + name + "=");
-    if (parts.length == 2) return parts.pop().split(";").shift();
+    if (parts.length == 2)
+        return parts
+            .pop()
+            .split(";")
+            .shift();
 }
 
 function getCookiePrefix() {
-    return window.location.pathname + "::"
+    return window.location.pathname + "::";
 }

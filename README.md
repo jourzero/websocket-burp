@@ -105,24 +105,24 @@ debug: WSD: HTTP upgrade event
 debug: WSD: Emitting connection event
 debug: WSD: WS connection event
 info: WSD: Sending WS open request to ws-upgrader: {}
-debug: WSD: Sending POST request to http://127.0.0.1:8083/websocket/open with body {"url":"http://127.0.0.1:8084"}
+debug: WSD: Sending POST request to http://127.0.0.1:8083/ws/open with body {"url":"http://127.0.0.1:8084"}
 info: WSU: Websocket open for http://127.0.0.1:8084 with queueing=undefined
 debug: WSD: Response data: {"op":"open"}
 
 debug: WSD: WS message event (string): {"type":"event","message":"Just a test!","wsSendTime":"2020-01-16T21:32:19.333Z"}
 info: WSD: Sending WS message to ws-upgrader: {"type":"event","message":"Just a test!","wsSendTime":"2020-01-16T21:32:19.333Z"}
-debug: WSD: Sending POST request to http://127.0.0.1:8083/websocket/send with body {"type":"event","message":"Just a test!","wsSendTime":"2020-01-16T21:32:19.333Z"}
+debug: WSD: Sending POST request to http://127.0.0.1:8083/ws/send with body {"type":"event","message":"Just a test!","wsSendTime":"2020-01-16T21:32:19.333Z"}
 info: WSU: Cannot send to Websocket: Closed
 debug: WSD: Response data: {"status":"Closed"}
 
 debug: WSD: WS message event (string): {"type":"event","message":"Just a test!","wsSendTime":"2020-01-16T21:32:26.198Z"}
 info: WSD: Sending WS message to ws-upgrader: {"type":"event","message":"Just a test!","wsSendTime":"2020-01-16T21:32:26.198Z"}
-debug: WSD: Sending POST request to http://127.0.0.1:8083/websocket/send with body {"type":"event","message":"Just a test!","wsSendTime":"2020-01-16T21:32:26.198Z"}
+debug: WSD: Sending POST request to http://127.0.0.1:8083/ws/send with body {"type":"event","message":"Just a test!","wsSendTime":"2020-01-16T21:32:26.198Z"}
 info: WSU: Cannot send to Websocket: Closed
 debug: WSD: Response data: {"status":"Closed"}
 
 info: WSD: Sending WS close request to ws-upgrader: {}
-debug: WSD: Sending POST request to http://127.0.0.1:8083/websocket/close with body {}
+debug: WSD: Sending POST request to http://127.0.0.1:8083/ws/close with body {}
 debug: WSD: WS close event
 info: WSU: Cannot send to Websocket: Closed
 debug: WSD: Response data: {"status":"Closed"}
