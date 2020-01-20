@@ -1,7 +1,7 @@
 var socket;
 let sStatus = "Unknown";
 let sessionless = true;
-let autoPollInterval = 10 * 1000;
+let autoPollInterval = 5 * 1000;
 let autoPollIntervalID;
 let wsQueueing;
 let autoUpdate;
@@ -11,7 +11,7 @@ let reqDelay = 500;
 let wsUrl;
 let wsMsg;
 
-$.ajaxSetup({cache: false});
+$.ajaxSetup({ cache: false });
 
 class FakeWebSocket {
     constructor(url) {
@@ -37,8 +37,8 @@ class FakeWebSocket {
         $.getJSON("/ws/check", function(data) {
             if (data !== undefined && data.status !== undefined) {
                 $("#wsStatus").html(data.status);
-                let statusText = new String(data.status);
                 /*
+                let statusText = new String(data.status);
                 if (statusText.startsWith("Open")) {
                     onopen();
                 } else if (statusText.startsWith("Closed")) {
@@ -52,24 +52,21 @@ class FakeWebSocket {
     getStats() {
         console.info("Sending websocket stats request");
         $.getJSON("/ws/stats", function(data) {
-            if (data === undefined) data = "";
-            $("#wsStats").html(JSON.stringify(data));
-        });
-    }
-
-    dequeue() {
-        console.info("Sending websocket dequeue request");
-        $.getJSON("/ws/dequeue", function(data) {
-            if (data === undefined) data = "";
-            $("#wsData").html(JSON.stringify(data));
+            if (typeof data === "undefined") data = "";
+            else if (typeof data === "object") data = JSON.stringify(data);
+            $("#wsStats").html(data);
         });
     }
 
     receive() {
         console.info("Sending websocket receive request");
         $.getJSON("/ws/receive", function(data) {
-            if (data === undefined) data = "";
-            $("#wsData").html(JSON.stringify(data));
+            if (typeof data === "undefined") data = "";
+            else if (typeof data === "object") data = JSON.stringify(data);
+            else if (typeof data !== "string")
+                data = "(" + typeof data + " data)";
+            $("#wsData").html(data);
+            console.info("Received: %s", data);
         });
     }
     postRespHandler(data, textStatus, jqXHR) {
@@ -101,7 +98,10 @@ class FakeWebSocket {
                     console.debug("Received data:", JSON.stringify(data));
                     $("#wsData").html(JSON.stringify(data));
                 } else {
-                    console.warn("Got here with no op data:", JSON.stringify(data));
+                    console.debug(
+                        "Got here with no op data:",
+                        JSON.stringify(data)
+                    );
                 }
             }
         } catch (err) {
@@ -126,7 +126,8 @@ class FakeWebSocket {
         $.getJSON(url, function(data) {
             try {
                 if (data !== undefined) {
-                    if (data.status !== undefined) wsStatus = data.status;
+                    if (data.status !== undefined)
+                        $("#wsStatus").html(data.status);
                     else {
                         let event = {};
                         event.data = JSON.stringify(data);
@@ -214,19 +215,6 @@ function onclose() {
     }
 }
 
-function connFailure() {
-    if ($("#autoUpdate").val() === "1") {
-        checkWS();
-        statsWS();
-    }
-    if (confirm("Connection failed. Would you like to reset connection and session parameters?")) {
-        reset();
-        window.location.reload(true);
-    } else {
-        window.location.reload(true);
-    }
-}
-
 // Re-read the values of checkboxes
 function getSettings() {
     wsMsg = $("#wsMsg").val();
@@ -250,8 +238,14 @@ function restoreAllValues() {
     console.log("Restoring all UI values from localStorage");
     $("#wsUrl").val(localStorage.getItem("wsUrl"));
     $("#wsMsg").val(localStorage.getItem("wsMsg"));
-    $("#wsQueueing").prop("checked", localStorage.getItem("wsQueueing") === "true");
-    $("#autoUpdate").prop("checked", localStorage.getItem("autoUpdate") === "true");
+    $("#wsQueueing").prop(
+        "checked",
+        localStorage.getItem("wsQueueing") === "true"
+    );
+    $("#autoUpdate").prop(
+        "checked",
+        localStorage.getItem("autoUpdate") === "true"
+    );
     $("#autoPoll").prop("checked", localStorage.getItem("autoPoll") === "true");
 }
 

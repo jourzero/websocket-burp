@@ -13,12 +13,17 @@ const config = {
     degraderPort: 8082,
     upgraderPort: 8083,
     testAppPort: 8084,
+    dataDir: `${appRoot}/data`,
+    saveLastBinaryResponse: false,
 
     // Optionally, configure logging (shouldn't be needed)
     logging: {
         file: {
             //format: winston.format.json(), // This format shouldn't cause CRLF issues
-            format: winston.format.combine(winston.format.timestamp(), winston.format.simple()),
+            format: winston.format.combine(
+                winston.format.timestamp(),
+                winston.format.simple()
+            ),
             level: "debug",
             handleExceptions: true,
             json: false,

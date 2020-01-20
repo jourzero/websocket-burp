@@ -28,17 +28,41 @@ if (typeof httpBackProxyURL !== "undefined") {
     backProxyAgent = new HttpsProxyAgent(backProxyUrl);
 }
 
-// Create logs directory
-/*
+// Create logs and data directory
 try {
     fs.mkdirSync(config.logging.file.folder, (err, folder) => {
-        if (err) log.error("WSU: Error trying to create " + folder + ": " + err.message);
+        if (err)
+            log.error(
+                "WSU: Error trying to create %s: %s",
+                folder,
+                err.message
+            );
         log.debug("WSU: Created folder %s", folder);
     });
 } catch (err) {
-    log.error("WSU: Exception trying to create " + config.logging.file.folder + ": " + err.message);
+    log.warn(
+        "WSU: Exception trying to create %s: %s",
+        config.logging.file.folder,
+        err.message
+    );
 }
-*/
+try {
+    fs.mkdirSync(config.dataDir, (err, folder) => {
+        if (err)
+            log.error(
+                "WSU: Error trying to create %s: %s",
+                folder,
+                err.message
+            );
+        log.debug("WSU: Created folder %s", folder);
+    });
+} catch (err) {
+    log.warn(
+        "WSU: Exception trying to create %s: %s",
+        config.dataDir,
+        err.message
+    );
+}
 
 // Use my request log
 app.use(reqLogger);
@@ -51,13 +75,24 @@ app.use(reqLogger);
 //app.use(log("dev"));
 app.use(cookieParser());
 // Don't use body parser to get full control of body parsing (by commenting-out the following line)
-app.use(express.json({type: "application/json", strict: false, limit: "5mb"}));
+app.use(
+    express.json({ type: "application/json", strict: false, limit: "5mb" })
+);
 app.use(express.static(path.join(__dirname, "public")));
-app.use("/fonts", express.static(path.join(__dirname, "node_modules/bootstrap/dist/fonts")));
-app.use("/bootstrap", express.static(path.join(__dirname, "node_modules/bootstrap/dist")));
-app.use("/jquery", express.static(path.join(__dirname, "node_modules/jquery/dist")));
+app.use(
+    "/fonts",
+    express.static(path.join(__dirname, "node_modules/bootstrap/dist/fonts"))
+);
+app.use(
+    "/bootstrap",
+    express.static(path.join(__dirname, "node_modules/bootstrap/dist"))
+);
+app.use(
+    "/jquery",
+    express.static(path.join(__dirname, "node_modules/jquery/dist"))
+);
 
-app.use(bodyParser.text({inflate: true, limit: "1mb", type: "text/html"}));
+app.use(bodyParser.text({ inflate: true, limit: "1mb", type: "text/html" }));
 app.use(
     bodyParser.json({
         inflate: true,
@@ -85,10 +120,14 @@ let wsQueueing = false;
 app.post("/ws/open", (req, res) => {
     let body = req.body;
     if (typeof body === "string") body = JSON.parse(req.body);
-    log.info("WSU: Websocket open for %s with queueing=%s", body.url, body.queueing);
+    log.info(
+        "WSU: Websocket open for %s with queueing=%s",
+        body.url,
+        body.queueing
+    );
     wsQueueing = body.queueing;
     if (typeof backProxyAgent !== "undefined")
-        ws = new WebSocket(body.url, {agent: backProxyAgent});
+        ws = new WebSocket(body.url, { agent: backProxyAgent });
     else ws = new WebSocket(body.url);
 
     ws.on("open", function(message) {
@@ -99,8 +138,26 @@ app.post("/ws/open", (req, res) => {
     });
 
     ws.on("message", function(message) {
-        log.debug("WSU: Queuing incoming websocket data of type: %s", typeof message);
-        if (typeof message === "string") log.info("WSU-IN: %s", message);
+        log.debug(
+            "WSU: Queuing incoming websocket data of type: %s",
+            typeof message
+        );
+        if (typeof message === "string") {
+            log.info("WSU-IN: %s", message);
+        } else if (typeof message === "object") {
+            //const data = new Uint8Array(Buffer.from(message));
+            if (config.saveLastBinaryResponse) {
+                const data = new Int16Array(Buffer.from(message));
+                const filename = `${config.dataDir}/tts-audio.l16`;
+                log.info("WSU-IN: (binary file saved to %s)", filename);
+                fs.writeFile(filename, data, err => {
+                    if (err) throw err;
+                });
+            } else {
+                log.info("WSU-IN: (binary data)");
+            }
+        }
+
         wsMessageQueue.push(message);
         wsMsgReceived++;
         wsStatus = "Open";
@@ -117,7 +174,7 @@ app.post("/ws/open", (req, res) => {
         wsStatus = "Error";
     });
     res.type("json");
-    res.status(201).json({op: "open"});
+    res.status(201).json({ op: "open" });
 });
 
 //Process send a message in the websocket
@@ -125,7 +182,7 @@ app.post("/ws/send", (req, res) => {
     if (wsStatus != "Open") {
         log.info("WSU: Cannot send to Websocket: %s", wsStatus);
         res.type("json");
-        res.status(404).json({status: wsStatus});
+        res.status(404).json({ status: wsStatus });
     } else {
         let body = req.body;
         if (typeof req.body === "object") {
@@ -150,7 +207,7 @@ app.post("/ws/send", (req, res) => {
 app.get("/ws/check", (req, res) => {
     log.info("WSU: Checking websocket status.");
     res.type("json");
-    res.status(200).json({op: "check", status: wsStatus});
+    res.status(200).json({ op: "check", status: wsStatus });
     log.info("WSU: Status: " + wsStatus);
 });
 
@@ -172,7 +229,7 @@ app.get("/ws/receive", (req, res) => {
     if (wsStatus != "Open") {
         log.info("WSU: Cannot receive from Websocket: %s", wsStatus);
         res.type("json");
-        res.status(404).json({status: wsStatus});
+        res.status(404).json({ status: wsStatus });
     } else {
         if (wsMessageQueue.length > 0) {
             let msg = wsMessageQueue.shift();
@@ -184,7 +241,9 @@ app.get("/ws/receive", (req, res) => {
                 res.status(200).send(msg);
             } else if (typeof msg === "object") {
                 //res.type("application/octet-stream");
-                res.status(200).send(Buffer.from(msg));
+                res.type("audio/L16");
+                const data = new Int16Array(Buffer.from(msg));
+                res.status(200).send(data);
             }
         } else {
             log.debug("WSU: No more received message (in queue)");
@@ -199,7 +258,7 @@ app.post("/ws/close", (req, res) => {
     if (wsStatus != "Open") {
         log.info("WSU: Cannot send to Websocket: %s", wsStatus);
         res.type("json");
-        res.status(404).json({status: wsStatus});
+        res.status(404).json({ status: wsStatus });
     } else {
         log.info("WSU: Closing websocket.");
         ws.close();
@@ -213,7 +272,7 @@ app.use(function(req, res, next) {
     log.error(`WSU: UNKNOWN ROUTE ${req.originalUrl}`);
     //next(createError(404));
     res.type("json");
-    res.status(404).json({status: "NOT FOUND"});
+    res.status(404).json({ status: "NOT FOUND" });
     // render the error page
 });
 
@@ -237,13 +296,21 @@ app.use(function(err, req, res, next) {
 
 function logMessage(msg) {
     if (typeof msg == "string") {
-        fs.appendFile(config.logging.file.folder + "messages.json", msg + "\n", err => {
-            if (err) throw err;
-        });
+        fs.appendFile(
+            config.logging.file.folder + "messages.json",
+            msg + "\n",
+            err => {
+                if (err) throw err;
+            }
+        );
     } else {
-        fs.appendFile(config.logging.file.folder + "messages.json", msg.toString() + "\n", err => {
-            if (err) throw err;
-        });
+        fs.appendFile(
+            config.logging.file.folder + "messages.json",
+            msg.toString() + "\n",
+            err => {
+                if (err) throw err;
+            }
+        );
     }
 }
 module.exports = app;

@@ -83,11 +83,10 @@ function onError(error) {
 
 // Event listener for HTTP server "listening" event.
 function onListening() {
-    const addr = server.address();
-    const bind =
-        typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
+    //const addr = server.address();
+    //const bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
     log.info(
-        "WSP: WebSocket Upgrader API Server started. API Tester at http://127.0.0.1:%s/tester.html",
+        "WSP: WS-Upgrader started. Tester at http://127.0.0.1:%s/tester.html",
         port
     );
 }

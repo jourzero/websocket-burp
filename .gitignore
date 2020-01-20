@@ -67,3 +67,5 @@ req.json
 rsync.sh
 .rsyncExclusions.txt
 private/
+data/
+public/tmp/
