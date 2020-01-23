@@ -51,7 +51,7 @@ docker build --build-arg HTTP_PROXY_URL=http://192.168.9.125:8081 --build-arg TA
 # Run with specific URL values
 $ ./run-container.sh
 + docker-run.sh -e HTTP_PROXY_FRONT=http://192.168.9.125:8081 -e HTTP_PROXY_BACK=http://192.168.9.125:8081 -e NODE_TLS_REJECT_UNAUTHORIZED=0 -e TARGET_APP_URL=http://127.0.0.1:8084
-docker run -it --rm -p 127.0.0.1:8082-8084:8082-8084 --mount type=bind,source=/Users/eric_paquet/OneDrive - Nuance/Share/git/websocket-burp,target=/app -e HTTP_PROXY_FRONT=http://192.168.9.125:8081 -e HTTP_PROXY_BACK=http://192.168.9.125:8081 -e NODE_TLS_REJECT_UNAUTHORIZED=0 -e TARGET_APP_URL=http://127.0.0.1:8084 --name websocket-burp websocket-burp
+docker run -it --rm -p 127.0.0.1:8082-8084:8082-8084 --mount type=bind,source="$PWD",target=/app -e HTTP_PROXY_FRONT=http://192.168.9.125:8081 -e HTTP_PROXY_BACK=http://192.168.9.125:8081 -e NODE_TLS_REJECT_UNAUTHORIZED=0 -e TARGET_APP_URL=http://127.0.0.1:8084 --name websocket-burp websocket-burp
 TARGET_APP_URL=http://127.0.0.1:8084
 WSU_PORT=8083
 NODE_VERSION=13.6.0
